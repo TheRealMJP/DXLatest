@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="DXLatest">
+      <UniqueIdentifier>{a6d19601-3800-4631-a725-cd111a1fe8bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AgilitySDK">
+      <UniqueIdentifier>{5c8e7aed-2b95-4cb1-9a78-486372ff2e7b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\dxlatest.cpp">
+      <Filter>DXLatest</Filter>
+    </ClCompile>
+    <ClCompile Include="SingleTriangle.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\dxlatest.h">
+      <Filter>DXLatest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12compatibility.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12compiler.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12sdklayers.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12shader.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\D3D12TokenizedProgramFormat.hpp">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12video.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dcommon.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dshadercacheregistration.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\dxgiformat.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_barriers.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_check_feature_support.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_core.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_default.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_pipeline_state_stream.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_property_format_table.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_render_pass.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_resource_helpers.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_root_signature.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_state_object.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

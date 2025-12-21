@@ -1,0 +1,12 @@
+![Dd]ebug/
+![Rr]elease/
+!x64/
+!build/
+
+![Bb]in/
+![Oo]bj/
+!*.exe
+!*.dll
+!*.pdb
+![Ll]ib/
+![Ii]nclude/
