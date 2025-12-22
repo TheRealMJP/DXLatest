@@ -1,31 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="DXLatest">
-      <UniqueIdentifier>{a6d19601-3800-4631-a725-cd111a1fe8bb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="AgilitySDK">
-      <UniqueIdentifier>{5c8e7aed-2b95-4cb1-9a78-486372ff2e7b}</UniqueIdentifier>
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="DXLatest">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="SingleTriangle.cpp" />
     <ClCompile Include="..\..\dxlatest.cpp">
       <Filter>DXLatest</Filter>
     </ClCompile>
-    <ClCompile Include="SingleTriangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\dxlatest.h">
       <Filter>DXLatest</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\AgilitySDK\include\d3d12.h">
-      <Filter>AgilitySDK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\AgilitySDK\include\d3d12compatibility.h">
-      <Filter>AgilitySDK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\AgilitySDK\include\d3d12compiler.h">
-      <Filter>AgilitySDK</Filter>
     </ClInclude>
     <ClInclude Include="..\..\AgilitySDK\include\d3d12sdklayers.h">
       <Filter>AgilitySDK</Filter>
@@ -79,6 +72,15 @@
       <Filter>AgilitySDK</Filter>
     </ClInclude>
     <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_state_object.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12compatibility.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12compiler.h">
       <Filter>AgilitySDK</Filter>
     </ClInclude>
   </ItemGroup>
