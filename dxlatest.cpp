@@ -19,55 +19,42 @@ static_assert(sizeof(DXL_RESOURCE_DESC) == sizeof(D3D12_RESOURCE_DESC1));
 
 HRESULT DXLBase::QueryInterface(REFIID riid, void** outObject)
 {
-    return underyling->QueryInterface(riid, outObject);
+    return ToIUnknown()->QueryInterface(riid, outObject);
 }
 
 ULONG DXLBase::AddRef()
 {
-    return ++refCount;
+    return ToIUnknown()->AddRef();
 }
 
 ULONG DXLBase::Release()
 {
-    if (refCount == 1)
-    {
-        underyling->Release();
-        return 0;
-    }
-    else
-    {
-        return --refCount;
-    }
+    return ToIUnknown()->Release();
 }
 
-// == IDXLObject ======================================================
+// == DXLObject ======================================================
 
-ID3D12Object* IDXLObject::ToID3D12Object() const
-{
-    return reinterpret_cast<ID3D12Object*>(underyling);
-}
-
-HRESULT IDXLObject::GetPrivateData(REFGUID guid, uint32_t* outDataSize, void* outData) const
+HRESULT DXLObject::GetPrivateData(REFGUID guid, uint32_t* outDataSize, void* outData) const
 {
     return ToID3D12Object()->GetPrivateData(guid, outDataSize, outData);
 }
 
-HRESULT IDXLObject::SetPrivateData(REFGUID guid, uint32_t dataSize, const void *data)
+HRESULT DXLObject::SetPrivateData(REFGUID guid, uint32_t dataSize, const void *data)
 {
     return ToID3D12Object()->SetPrivateData(guid, dataSize, data);
 }
 
-HRESULT IDXLObject::SetPrivateDataInterface(REFGUID guid, const IUnknown* data)
+HRESULT DXLObject::SetPrivateDataInterface(REFGUID guid, const IUnknown* data)
 {
     return ToID3D12Object()->SetPrivateDataInterface(guid, data);
 }
 
-HRESULT IDXLObject::SetName(const wchar_t* name)
+HRESULT DXLObject::SetName(const wchar_t* name)
 {
     return ToID3D12Object()->SetName(name);
 }
 
-HRESULT IDXLObject::SetName(const char* name)
+HRESULT DXLObject::SetName(const char* name)
 {
     const int32_t numChars = MultiByteToWideChar(CP_UTF8, 0, name, -1, nullptr, 0);
     if (numChars <= 0)
@@ -81,67 +68,42 @@ HRESULT IDXLObject::SetName(const char* name)
     return hr;
 }
 
-// == IDXLDeviceChild ======================================================
+// == DXLDeviceChild ======================================================
 
-ID3D12DeviceChild* IDXLDeviceChild::ToID3D12DeviceChild() const
-{
-    return reinterpret_cast<ID3D12DeviceChild*>(underyling);
-}
-
-HRESULT IDXLDeviceChild::GetDevice(REFIID riid, void** outDevice)
+HRESULT DXLDeviceChild::GetDevice(REFIID riid, void** outDevice)
 {
     return ToID3D12DeviceChild()->GetDevice(riid, outDevice);
 }
 
-// == IDXLRootSignature ======================================================
+// == DXLRootSignature ======================================================
 
-ID3D12RootSignature* IDXLRootSignature::ToID3D12RootSignature() const
-{
-    return reinterpret_cast<ID3D12RootSignature*>(underyling);
-}
+// == DXLPageable ======================================================
 
-// == IDXLPageable ======================================================
+// == DXLPageable ======================================================
 
-ID3D12Pageable* IDXLPageable::ToID3D12Pageable() const
-{
-    return reinterpret_cast<ID3D12Pageable*>(underyling);
-}
-
-// == IDXLPageable ======================================================
-
-ID3D12Heap1* IDXLHeap::ToID3D12Heap() const
-{
-    return reinterpret_cast<ID3D12Heap1*>(underyling);
-}
-
-DXL_HEAP_DESC IDXLHeap::GetDesc() const
+DXL_HEAP_DESC DXLHeap::GetDesc() const
 {
     return ToID3D12Heap()->GetDesc();
 }
 
-HRESULT IDXLHeap::GetProtectedResourceSession(REFIID riid, void** outProtectedSession) const
+HRESULT DXLHeap::GetProtectedResourceSession(REFIID riid, void** outProtectedSession) const
 {
     return ToID3D12Heap()->GetProtectedResourceSession(riid, outProtectedSession);
 }
 
-// == IDXLResource ======================================================
+// == DXLResource ======================================================
 
-ID3D12Resource2* IDXLResource::ToID3D12Resource() const
-{
-    return reinterpret_cast<ID3D12Resource2*>(underyling);
-}
-
-HRESULT IDXLResource::Map(uint32_t subresource, const D3D12_RANGE* readRange, void** outData)
+HRESULT DXLResource::Map(uint32_t subresource, const D3D12_RANGE* readRange, void** outData)
 {
     return ToID3D12Resource()->Map(subresource, readRange, outData);
 }
 
-void IDXLResource::Unmap(uint32_t subresource, const D3D12_RANGE* writtenRange)
+void DXLResource::Unmap(uint32_t subresource, const D3D12_RANGE* writtenRange)
 {
     ToID3D12Resource()->Unmap(subresource, writtenRange);
 }
 
-void* IDXLResource::Map(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex)
+void* DXLResource::Map(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex)
 {
     const D3D12_RESOURCE_DESC1 desc = ToID3D12Resource()->GetDesc1();
     const uint32_t subresourceIndex = D3D12CalcSubresource(mipLevel, arrayIndex, planeIndex, desc.MipLevels, desc.DepthOrArraySize);
@@ -151,81 +113,71 @@ void* IDXLResource::Map(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIn
     return data;
 }
 
-void IDXLResource::Unmap(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex)
+void DXLResource::Unmap(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex)
 {
     const D3D12_RESOURCE_DESC1 desc = ToID3D12Resource()->GetDesc1();
     const uint32_t subresourceIndex = D3D12CalcSubresource(mipLevel, arrayIndex, planeIndex, desc.MipLevels, desc.DepthOrArraySize);
     ToID3D12Resource()->Unmap(subresourceIndex, nullptr);
 }
 
-DXL_RESOURCE_DESC IDXLResource::GetDesc() const
+DXL_RESOURCE_DESC DXLResource::GetDesc() const
 {
     return ToID3D12Resource()->GetDesc1();
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS IDXLResource::GetGPUVirtualAddress() const
+D3D12_GPU_VIRTUAL_ADDRESS DXLResource::GetGPUVirtualAddress() const
 {
     return ToID3D12Resource()->GetGPUVirtualAddress();
 }
 
-HRESULT IDXLResource::WriteToSubresource(uint32_t dstSubresource, const D3D12_BOX* dstBox, const void* srcData, uint32_t srcRowPitch, uint32_t srcDepthPitch)
+HRESULT DXLResource::WriteToSubresource(uint32_t dstSubresource, const D3D12_BOX* dstBox, const void* srcData, uint32_t srcRowPitch, uint32_t srcDepthPitch)
 {
     return ToID3D12Resource()->WriteToSubresource(dstSubresource, dstBox, srcData, srcRowPitch, srcDepthPitch);
 }
 
-HRESULT IDXLResource::ReadFromSubresource(void* dstData, uint32_t dstRowPitch, uint32_t dstDepthPitch, uint32_t srcSubresource, const D3D12_BOX* srcBox) const
+HRESULT DXLResource::ReadFromSubresource(void* dstData, uint32_t dstRowPitch, uint32_t dstDepthPitch, uint32_t srcSubresource, const D3D12_BOX* srcBox) const
 {
     return ToID3D12Resource()->ReadFromSubresource(dstData, dstRowPitch, dstDepthPitch, srcSubresource, srcBox);
 }
 
-HRESULT IDXLResource::GetHeapProperties(DXL_HEAP_PROPERTIES* outHeapProperties, D3D12_HEAP_FLAGS* outHeapFlags) const
+HRESULT DXLResource::GetHeapProperties(DXL_HEAP_PROPERTIES* outHeapProperties, D3D12_HEAP_FLAGS* outHeapFlags) const
 {
     D3D12_HEAP_PROPERTIES d3d12HeapProperties = { };
     HRESULT hr = ToID3D12Resource()->GetHeapProperties(&d3d12HeapProperties, outHeapFlags);
-    *outHeapProperties = ConvertStruct<DXL_HEAP_PROPERTIES>(d3d12HeapProperties);
+    *outHeapProperties = d3d12HeapProperties;
     return hr;
 }
 
-HRESULT IDXLResource::GetProtectedResourceSession(REFIID riid, void** protectedSession) const
+HRESULT DXLResource::GetProtectedResourceSession(REFIID riid, void** protectedSession) const
 {
     return ToID3D12Resource()->GetProtectedResourceSession(riid, protectedSession);
 }
 
-// == IDXLCommandAllocator ======================================================
+// == DXLCommandAllocator ======================================================
 
-ID3D12CommandAllocator* IDXLCommandAllocator::ToID3D12CommandAllocator() const
-{
-    return reinterpret_cast<ID3D12CommandAllocator*>(underyling);;
-}
-
-HRESULT IDXLCommandAllocator::Reset()
+HRESULT DXLCommandAllocator::Reset()
 {
     return ToID3D12CommandAllocator()->Reset();
 }
 
-// == IDXLFence ======================================================
+// == DXLFence ======================================================
 
-ID3D12Fence1* IDXLFence::ToID3D12Fence() const
-{
-    return reinterpret_cast<ID3D12Fence1*>(underyling);
-}
-
-uint64_t IDXLFence::GetCompletedValue() const
+uint64_t DXLFence::GetCompletedValue() const
 {
     return ToID3D12Fence()->GetCompletedValue();
 }
 
-HRESULT IDXLFence::SetEventOnCompletion(uint64_t value, HANDLE event)
+HRESULT DXLFence::SetEventOnCompletion(uint64_t value, HANDLE event)
 {
     return ToID3D12Fence()->SetEventOnCompletion(value, event);
 }
 
-HRESULT IDXLFence::Signal(uint64_t value)
+HRESULT DXLFence::Signal(uint64_t value)
 {
     return ToID3D12Fence()->Signal(value);
 }
 
-D3D12_FENCE_FLAGS IDXLFence::GetCreationFlags() const
+D3D12_FENCE_FLAGS DXLFence::GetCreationFlags() const
 {
     return ToID3D12Fence()->GetCreationFlags();
 }
