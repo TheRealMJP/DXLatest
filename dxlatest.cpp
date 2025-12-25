@@ -215,4 +215,11 @@ DXL_GPU_DESCRIPTOR_HANDLE DXLDescriptorHeap::GetGPUDescriptorHandleForHeapStart(
     return DXL_GPU_DESCRIPTOR_HANDLE(ToID3D12DescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
 }
 
+// == DXLCommandList =====================================================
+
+D3D12_COMMAND_LIST_TYPE DXLCommandList::GetType() const
+{
+    return ToID3D12CommandList()->GetType();
+}
+
 } // namespace dxl

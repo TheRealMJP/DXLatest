@@ -249,4 +249,25 @@ public:
     DXL_INTERFACE_BOILERPLATE(DXLCommandSignature, ID3D12CommandSignature, ToID3D12CommandSignature);
 };
 
+class DXLCommandList : public DXLDeviceChild
+{
+public:
+
+    DXL_INTERFACE_BOILERPLATE(DXLCommandList, ID3D12GraphicsCommandList10, ToID3D12CommandList);
+
+    D3D12_COMMAND_LIST_TYPE GetType() const;
+
+    HRESULT Close();
+
+    HRESULT Reset(DXLCommandAllocator allocator, DXLPipelineState pipelineState = DXLPipelineState());
+
+    void ClearState(DXLPipelineState pipelineState = DXLPipelineState());
+
+    void DrawInstanced(uint32_t VertexCountPerInstance, uint32_t InstanceCount, uint32_t StartVertexLocation, uint32_t StartInstanceLocation);
+
+    void DrawIndexedInstanced(uint32_t IndexCountPerInstance, uint32_t InstanceCount, uint32_t StartIndexLocation, int32_t BaseVertexLocation, uint32_t StartInstanceLocation);
+
+    void Dispatch(uint32_t ThreadGroupCountX, uint32_t ThreadGroupCountY, uint32_t ThreadGroupCountZ);
+};
+
 } // namespace dxl
