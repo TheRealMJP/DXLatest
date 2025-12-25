@@ -70,7 +70,7 @@ struct DXL_DESCRIPTOR_HEAP_DESC
 
 struct DXL_CPU_DESCRIPTOR_HANDLE
 {
-    size_T ptr = 0;
+    size_t ptr = 0;
 
     DXL_STRUCT_BOILERPLATE(DXL_CPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE);
 };
@@ -231,6 +231,22 @@ public:
     DXL_DESCRIPTOR_HEAP_DESC GetDesc();
     DXL_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandleForHeapStart();
     DXL_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandleForHeapStart();
+};
+
+class DXLQueryHeap : public DXLPageable
+{
+
+public:
+
+    DXL_INTERFACE_BOILERPLATE(DXLQueryHeap, ID3D12QueryHeap, ToID3D12QueryHeap);
+};
+
+class DXLCommandSignature : public DXLPageable
+{
+
+public:
+
+    DXL_INTERFACE_BOILERPLATE(DXLCommandSignature, ID3D12CommandSignature, ToID3D12CommandSignature);
 };
 
 } // namespace dxl
