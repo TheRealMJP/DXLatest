@@ -1,7 +1,9 @@
 #include "dxlatest.h"
 
-#define NOMINMAX
-#include <windows.h>
+#include "AgilitySDK/include/d3dx12/d3dx12.h"
+
+// #define NOMINMAX
+// #include <windows.h>
 
 #ifdef _MSC_VER
 #pragma comment(lib, "D3D12.lib")
@@ -22,12 +24,12 @@ HRESULT DXLBase::QueryInterface(REFIID riid, void** outObject)
     return ToIUnknown()->QueryInterface(riid, outObject);
 }
 
-ULONG DXLBase::AddRef()
+uint32_t DXLBase::AddRef()
 {
     return ToIUnknown()->AddRef();
 }
 
-ULONG DXLBase::Release()
+uint32_t DXLBase::Release()
 {
     return ToIUnknown()->Release();
 }
@@ -180,6 +182,20 @@ HRESULT DXLFence::Signal(uint64_t value)
 D3D12_FENCE_FLAGS DXLFence::GetCreationFlags() const
 {
     return ToID3D12Fence()->GetCreationFlags();
+}
+
+// == DXLPipelineState ======================================================
+
+DXLRootSignature DXLPipelineState::GetRootSignature() const
+{
+    ID3D12RootSignature* rootSig = nullptr;
+    GetRootSignature(IID_PPV_ARGS(&rootSig));
+    return DXLRootSignature(rootSig);
+}
+
+HRESULT DXLPipelineState::GetRootSignature(REFIID riid, void** outRootSignature) const
+{
+    return ToID3D12PipelineState()->GetRootSignature(riid, outRootSignature);
 }
 
 } // namespace dxl

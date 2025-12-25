@@ -3,7 +3,6 @@
 #include <stdint.h>
 
 #include "AgilitySDK/include/d3d12.h"
-#include "AgilitySDK/include/d3dx12/d3dx12.h"
 
 #define DXL_STRUCT_BOILERPLATE(DXLStruct, D3D12Struct)  \
     DXLStruct() = default;                              \
@@ -73,8 +72,15 @@ public:
     DXL_INTERFACE_BOILERPLATE(DXLBase, IUnknown, ToIUnknown);
 
     HRESULT QueryInterface(REFIID riid, void** outObject);
-    ULONG AddRef();
-    ULONG Release();
+    template<typename T> T* QueryInterface()
+    {
+        T* queried = nullptr;
+        QueryInterface(IID_PPV_ARGS(&queried));
+        return queried;
+    }
+
+    uint32_t AddRef();
+    uint32_t Release();
 
 protected:
 
@@ -180,8 +186,6 @@ public:
     D3D12_FENCE_FLAGS GetCreationFlags() const;
 };
 
-class DXLRootSignature;
-
 class DXLPipelineState : public DXLPageable
 {
 
@@ -189,7 +193,17 @@ public:
 
     DXL_INTERFACE_BOILERPLATE(DXLPipelineState, ID3D12PipelineState1, ToID3D12PipelineState);
 
-    HRESULT GetRootSignature(REFIID riid, void** ppvRootSignature);
+    DXLRootSignature GetRootSignature() const;
+    HRESULT GetRootSignature(REFIID riid, void** outRootSignature) const;
+};
+
+class DXLDescriptorHeap : public DXLPageable
+{
+
+public:
+
+    DXL_INTERFACE_BOILERPLATE(DXLDescriptorHeap, ID3D12DescriptorHeap, ToID3D12DescriptorHeap);
+
 };
 
 } // namespace dxl
