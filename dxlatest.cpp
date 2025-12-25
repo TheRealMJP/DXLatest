@@ -198,4 +198,21 @@ HRESULT DXLPipelineState::GetRootSignature(REFIID riid, void** outRootSignature)
     return ToID3D12PipelineState()->GetRootSignature(riid, outRootSignature);
 }
 
+// == DXLDescriptorHeap =====================================================
+
+DXL_DESCRIPTOR_HEAP_DESC DXLDescriptorHeap::GetDesc()
+{
+    return DXL_DESCRIPTOR_HEAP_DESC(ToID3D12DescriptorHeap()->GetDesc());
+}
+
+DXL_CPU_DESCRIPTOR_HANDLE DXLDescriptorHeap::GetCPUDescriptorHandleForHeapStart()
+{
+    return DXL_CPU_DESCRIPTOR_HANDLE(ToID3D12DescriptorHeap()->GetCPUDescriptorHandleForHeapStart());
+}
+
+DXL_GPU_DESCRIPTOR_HANDLE DXLDescriptorHeap::GetGPUDescriptorHandleForHeapStart()
+{
+    return DXL_GPU_DESCRIPTOR_HANDLE(ToID3D12DescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
+}
+
 } // namespace dxl
