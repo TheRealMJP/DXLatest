@@ -11,26 +11,27 @@ public:
         return internal->Release();
     }
 
-    operator IUnknown* ()
+    operator IUnknown* () const
     {
         return internal;
     }
 
-    operator bool()
+    operator bool() const
     {
         return internal != nullptr;
     }
 
-    bool operator==(IUnknown* other) { return internal == other; }
-    bool operator==(UnknownX other) { return internal == other.internal; }
+    bool operator==(IUnknown* other) const { return internal == other; }
+    bool operator==(UnknownX other) const { return internal == other.internal; }
 
-    bool operator!=(IUnknown* other) { return internal != other; }
-    bool operator!=(UnknownX other) { return internal != other.internal; }
+    bool operator!=(IUnknown* other) const { return internal != other; }
+    bool operator!=(UnknownX other) const { return internal != other.internal; }
 
 
     UnknownX* operator->() { return this; }
+    const UnknownX* operator->() const { return this; }
 
-    IUnknown* ToNative()
+    IUnknown* ToNative() const
     {
         return internal;
     }
@@ -44,23 +45,26 @@ class BaseX : public UnknownX
 {
 public:
 
-    operator ID3D12Object* ()
+    operator ID3D12Object* () const
     {
         return (ID3D12Object*)internal;
     }
 
     BaseX* operator->() { return this; }
+    const BaseX* operator->() const { return this; }
 
-    bool operator==(ID3D12Object* other) { return internal == other; }
-    bool operator==(BaseX other) { return internal == other.internal; }
+    bool operator==(ID3D12Object* other) const { return internal == other; }
+    bool operator==(BaseX other) const { return internal == other.internal; }
 
-    bool operator!=(ID3D12Object* other) { return internal != other; }
-    bool operator!=(BaseX other) { return internal != other.internal; }
+    bool operator!=(ID3D12Object* other) const { return internal != other; }
+    bool operator!=(BaseX other) const { return internal != other.internal; }
 
-    ID3D12Object* ToNative()
+    ID3D12Object* ToNative() const
     {
         return (ID3D12Object*)internal;
     }
+
+    uint32_t GetCount() const { return 0; }
 
 private:
 
@@ -95,6 +99,28 @@ int32_t APIENTRY WinMain([[maybe_unused]] HINSTANCE hInstance, [[maybe_unused]] 
             num += 2;
 
         if (x != otherX)
+            num += 2;
+
+        const BaseX constX;
+        num += constX.GetCount();
+        num += constX->GetCount();
+
+        if (constX != nullptr)
+            num += 1;
+
+        if (constX == nullptr)
+            num += 1;
+
+        if (constX != obj)
+            num += 1;
+
+        if (constX == obj)
+            num += 1;
+
+        if (constX == otherX)
+            num += 2;
+
+        if (constX != otherX)
             num += 2;
     }
 
