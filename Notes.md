@@ -44,6 +44,7 @@ Possible Design Directions
 
 - Not implicitly convertible in cases where arrays of pointers are passed
 - Extra call overhead if not inlined
+- Doesn't work with IID_PPV_ARGS, extensions (or signature changes) needed for returning wrapper types
 
 * Can we use this in a COM smart pointer?
 * Can we allow boolean operator and/or checking against nullptr without ambiguous calls?
@@ -88,6 +89,7 @@ Possible Design Directions
 - Can't implicitly convert from the native interface pointer type
 - Not implicitly convertible in cases where arrays of pointers are passed (I don't think, double check)
 - Private methods still show up in intellisense but with a lock icon
+- Doesn't work with IID_PPV_ARGS, extensions (or signature changes) needed for returning wrapper types
 
 * Does this work right in terms of hiding + intellisense with implicit casting to base?
     * Seems to work ok in terms of making methods inaccessible, however the private methods still show up in intellisense but with a lock icon
@@ -109,6 +111,7 @@ Possible Design Directions
 - Not implicitly convertible in cases where arrays of pointers are passed (I don't think, double check)
 - Extra call overhead if not inlined
 - Private methods still show up in intellisense but with a lock icon
+- Doesn't work with IID_PPV_ARGS, extensions (or signature changes) needed for returning wrapper types
 
 * Does this work right in terms of hiding + intellisense with implicit casting to base?
     * Seems to work ok in terms of making methods inaccessible, however the private methods still show up in intellisense but with a lock icon
@@ -116,3 +119,10 @@ Possible Design Directions
 Auto-Generation vs. Hand Writing
 ================================
 
+* IDL (MIDL) seems not too hard make a crappy parser for, at least the D3D12 subset
+* MIDL compiler doesn't seem useful, but maybe there's a useful library somewhere? Couldn't immediately find one.
+* Would be easy to have a list of interfaces/methods to include, and results for converting parameter types if desired
+* How to include inline comments?
+* How to include extension methods?
+* Could maybe save a lot of time even on the intitial rev, or maybe could be useful for generating custom cuts with options
+* Would definitely be nice for keeping up with future additions
