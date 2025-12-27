@@ -24,8 +24,8 @@ Goals
 * Inline comments for structs
     * Also requires redefining structs
 
-Possible Design Directions
-==========================
+Possible Wrapper Design Directions
+==================================
 
 ### Wrapper Class
 
@@ -115,6 +115,75 @@ Possible Design Directions
 
 * Does this work right in terms of hiding + intellisense with implicit casting to base?
     * Seems to work ok in terms of making methods inaccessible, however the private methods still show up in intellisense but with a lock icon
+
+Other Design Decisions
+======================
+
+### Redefined Structs
+
+* Are these worth it?
++ Defaults are nice
++ Standard types are also kinda nice
++ Could maybe hide certain members, but then care needs to be taken during conversion
+- Problems with passing pointers to interface methods, can't implicitly convert in that case
+
+### Redefined Enums
+
+* These are annoying to replicate and don't add that much value
+* Probably wouldn't document or comment these all either...
+* Unsure about implicit conversions with these
++ Could exclude certain options that are considered deprecated
+- Annoying to replicate
+- Take up lots of space
+
+What To Deprecate
+=================
+
+### Definitely
+
+* Vertex buffers and fixed-function vertex fetch
+* Bundles
+* Legacy barriers
+* PSO libraries
+
+### Maybes
+
+* Descriptor tables?
+    * Could be cool, not really needed that much
+    * Could also remove descriptor copying maybe?
+    * Need to check out root sig desc
+
+* ClearUnorderedAccessView?
+    * Can't have this if we get rid of CPU-visible heaps, which is suuuuuper annoying
+    * Tough to provide as a helper implementation I think because you would need PSO
+
+* Root signatures?
+    * Heavy handed, but would clean up a lot of things
+    * Would have to provide some sort of universal root signature, or a way to make one
+    * Could be very cool/intriguing for beginners, but also risky and divergent
+
+* Vertex shaders and index buffers?
+    * Not sure this would be a good choice for beginners, mesh shaders are gnarly and have a higher startup cost because of meshlets
+    * Also not sure the surface area from this is particularly high
+
+* Geometry shaders?
+    * They're not great but still have some use cases
+    * Not sure the API surface area is particularly high
+
+* Hull and Domain shaders?
+    * They also have issues but mesh shaders are far from a straightforward replacement
+    * Not sure the API surface area is particularly high
+
+* MSAA
+    * Not often used, but occasionally still useful
+    * It has a bit of API surface area
+
+Helper Functions and Extensions
+===============================
+
+* UTF-8 for SetName
+* Create device with agility SDK and debug layer with callback
+* PSO creation
 
 Auto-Generation vs. Hand Writing
 ================================
