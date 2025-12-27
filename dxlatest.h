@@ -79,15 +79,15 @@ struct DXL_INDEX_BUFFER_VIEW
 
 #define DXL_INTERFACE_BOILERPLATE(DXLClass, D3D12Interface) \
     DXLClass() = default;   \
-    DXLClass(D3D12Interface* d3d12Interface) { underlying = d3d12Interface; }   \
-    D3D12Interface* ToNative() const { return reinterpret_cast<D3D12Interface*>(underlying); }     \
+    DXLClass(D3D12Interface* d3d12Interface) { nativeInterface = d3d12Interface; }   \
+    D3D12Interface* ToNative() const { return reinterpret_cast<D3D12Interface*>(nativeInterface); }     \
     DXLClass* operator->() { return this; }     \
     const DXLClass* operator->() const { return this; }     \
     operator D3D12Interface*() const { return ToNative(); } \
-    bool operator==(D3D12Interface* other) const { return underlying == other; }    \
-    bool operator==(DXLClass other) const { return underlying == other.underlying; }    \
-    bool operator!=(D3D12Interface* other) const { return underlying != other; }    \
-    bool operator!=(DXLClass other) const { return underlying != other.underlying; }
+    bool operator==(D3D12Interface* other) const { return nativeInterface == other; }    \
+    bool operator==(DXLClass other) const { return nativeInterface == other.nativeInterface; }    \
+    bool operator!=(D3D12Interface* other) const { return nativeInterface != other; }    \
+    bool operator!=(DXLClass other) const { return nativeInterface != other.nativeInterface; }
 
 class DXLBase
 {
@@ -109,12 +109,12 @@ public:
 
     operator bool() const
     {
-        return underlying != nullptr;
+        return nativeInterface != nullptr;
     }
 
 protected:
 
-    IUnknown* underlying = nullptr;
+    IUnknown* nativeInterface = nullptr;
 };
 
 class DXLObject : public DXLBase
