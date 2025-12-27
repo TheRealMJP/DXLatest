@@ -77,19 +77,19 @@ struct DXL_INDEX_BUFFER_VIEW
     DXL_STRUCT_BOILERPLATE(DXL_INDEX_BUFFER_VIEW, D3D12_INDEX_BUFFER_VIEW);
 };
 
-#define DXL_INTERFACE_BOILERPLATE(DXLClass, D3D12Interface, ConversionFuncName) \
+#define DXL_INTERFACE_BOILERPLATE(DXLClass, D3D12Interface) \
     DXLClass() = default;   \
     DXLClass(D3D12Interface* d3d12Interface) { underlying = d3d12Interface; }   \
-    D3D12Interface* ConversionFuncName() const { return reinterpret_cast<D3D12Interface*>(underlying); }     \
+    D3D12Interface* ToNative() const { return reinterpret_cast<D3D12Interface*>(underlying); }     \
     DXLClass* operator->() { return this; }     \
-    operator D3D12Interface*() const { return ConversionFuncName(); }
+    operator D3D12Interface*() const { return ToNative(); }
 
 class DXLBase
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLBase, IUnknown, ToIUnknown);
+    DXL_INTERFACE_BOILERPLATE(DXLBase, IUnknown);
 
     HRESULT QueryInterface(REFIID riid, void** outObject);
     template<typename T> T* QueryInterface()
@@ -117,7 +117,7 @@ class DXLObject : public DXLBase
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLObject, ID3D12Object, ToID3D12Object);
+    DXL_INTERFACE_BOILERPLATE(DXLObject, ID3D12Object);
 
     HRESULT GetPrivateData(REFGUID guid, uint32_t* outDataSize, void* outData) const;
     HRESULT SetPrivateData(REFGUID guid, uint32_t dataSize, const void *data);
@@ -131,7 +131,7 @@ class DXLDeviceChild : public DXLObject
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLDeviceChild, ID3D12DeviceChild, ToID3D12DeviceChild);
+    DXL_INTERFACE_BOILERPLATE(DXLDeviceChild, ID3D12DeviceChild);
 
     HRESULT GetDevice(REFIID riid, void** outDevice);
 };
@@ -141,7 +141,7 @@ class DXLRootSignature : public DXLDeviceChild
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLRootSignature, ID3D12RootSignature, ToID3D12RootSignature);
+    DXL_INTERFACE_BOILERPLATE(DXLRootSignature, ID3D12RootSignature);
 };
 
 class DXLPageable : public DXLDeviceChild
@@ -149,7 +149,7 @@ class DXLPageable : public DXLDeviceChild
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLPageable, ID3D12Pageable, ToID3D12Pageable);
+    DXL_INTERFACE_BOILERPLATE(DXLPageable, ID3D12Pageable);
 };
 
 class DXLHeap : public DXLPageable
@@ -157,7 +157,7 @@ class DXLHeap : public DXLPageable
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLHeap, ID3D12Heap1, ToID3D12Heap);
+    DXL_INTERFACE_BOILERPLATE(DXLHeap, ID3D12Heap1);
 
     DXL_HEAP_DESC GetDesc() const;
     HRESULT GetProtectedResourceSession(REFIID riid, void** outProtectedSession) const;
@@ -168,7 +168,7 @@ class DXLResource : public DXLPageable
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLResource, ID3D12Resource2, ToID3D12Resource);
+    DXL_INTERFACE_BOILERPLATE(DXLResource, ID3D12Resource2);
 
     HRESULT Map(uint32_t subresource, const D3D12_RANGE* readRange, void** outData);
     void Unmap(uint32_t subresource, const D3D12_RANGE* writtenRange);
@@ -192,7 +192,7 @@ class DXLCommandAllocator : public DXLPageable
 {
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLCommandAllocator, ID3D12CommandAllocator, ToID3D12CommandAllocator);
+    DXL_INTERFACE_BOILERPLATE(DXLCommandAllocator, ID3D12CommandAllocator);
 
     HRESULT Reset();
 };
@@ -202,7 +202,7 @@ class DXLFence : public DXLPageable
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLFence, ID3D12Fence1, ToID3D12Fence);
+    DXL_INTERFACE_BOILERPLATE(DXLFence, ID3D12Fence1);
 
     uint64_t GetCompletedValue() const;
     HRESULT SetEventOnCompletion(uint64_t value, HANDLE event);
@@ -216,7 +216,7 @@ class DXLPipelineState : public DXLPageable
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLPipelineState, ID3D12PipelineState1, ToID3D12PipelineState);
+    DXL_INTERFACE_BOILERPLATE(DXLPipelineState, ID3D12PipelineState1);
 
     DXLRootSignature GetRootSignature() const;
     HRESULT GetRootSignature(REFIID riid, void** outRootSignature) const;
@@ -227,7 +227,7 @@ class DXLDescriptorHeap : public DXLPageable
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLDescriptorHeap, ID3D12DescriptorHeap, ToID3D12DescriptorHeap);
+    DXL_INTERFACE_BOILERPLATE(DXLDescriptorHeap, ID3D12DescriptorHeap);
 
     DXL_DESCRIPTOR_HEAP_DESC GetDesc();
     D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandleForHeapStart();
@@ -239,7 +239,7 @@ class DXLQueryHeap : public DXLPageable
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLQueryHeap, ID3D12QueryHeap, ToID3D12QueryHeap);
+    DXL_INTERFACE_BOILERPLATE(DXLQueryHeap, ID3D12QueryHeap);
 };
 
 class DXLCommandSignature : public DXLPageable
@@ -247,14 +247,14 @@ class DXLCommandSignature : public DXLPageable
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLCommandSignature, ID3D12CommandSignature, ToID3D12CommandSignature);
+    DXL_INTERFACE_BOILERPLATE(DXLCommandSignature, ID3D12CommandSignature);
 };
 
 class DXLCommandList : public DXLDeviceChild
 {
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLCommandList, ID3D12GraphicsCommandList10, ToID3D12CommandList);
+    DXL_INTERFACE_BOILERPLATE(DXLCommandList, ID3D12GraphicsCommandList10);
 
     D3D12_COMMAND_LIST_TYPE GetType() const;
 

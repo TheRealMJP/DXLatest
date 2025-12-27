@@ -125,7 +125,7 @@ int32_t APIENTRY WinMain([[maybe_unused]] HINSTANCE hInstance, [[maybe_unused]] 
     }
 
     {
-        dxl::DXLObject x;
+        dxl::DXLCommandList x;
         [[maybe_unused]] uint32_t num = x ? 2 : 1;
     }
 }
