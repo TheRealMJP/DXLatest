@@ -314,7 +314,7 @@ void DXLCommandList::SetDescriptorHeaps(uint32_t numDescriptorHeaps, ID3D12Descr
 void DXLCommandList::SetDescriptorHeaps(DXLDescriptorHeap srvUavCbvHeap, DXLDescriptorHeap samplerHeap)
 {
     ID3D12DescriptorHeap* heaps[] = { srvUavCbvHeap, samplerHeap };
-    ToID3D12CommandList()->SetDescriptorHeaps(samplerHeap.ToID3D12DescriptorHeap() ? 2 : 1, heaps);
+    ToID3D12CommandList()->SetDescriptorHeaps(samplerHeap ? 2 : 1, heaps);
 }
 
 void DXLCommandList::SetComputeRootSignature(DXLRootSignature rootSignature)

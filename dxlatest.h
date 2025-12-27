@@ -82,7 +82,7 @@ struct DXL_INDEX_BUFFER_VIEW
     DXLClass(D3D12Interface* d3d12Interface) { underlying = d3d12Interface; }   \
     D3D12Interface* ConversionFuncName() const { return reinterpret_cast<D3D12Interface*>(underlying); }     \
     DXLClass* operator->() { return this; }     \
-    operator D3D12Interface*() { return ConversionFuncName(); }
+    operator D3D12Interface*() const { return ConversionFuncName(); }
 
 class DXLBase
 {
@@ -101,6 +101,11 @@ public:
 
     uint32_t AddRef();
     uint32_t Release();
+
+    operator bool() const
+    {
+        return underlying != nullptr;
+    }
 
 protected:
 
