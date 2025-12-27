@@ -126,3 +126,8 @@ Auto-Generation vs. Hand Writing
 * How to include extension methods?
 * Could maybe save a lot of time even on the intitial rev, or maybe could be useful for generating custom cuts with options
 * Would definitely be nice for keeping up with future additions
+
+* Hand written is obviously full control
+* Time consuming
+* Easy to interleave comments and extensions
+* Can use macros for certain amounts of boilerplate, as well as for certain configuration options
