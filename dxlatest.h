@@ -86,7 +86,8 @@ struct DXL_GPU_DESCRIPTOR_HANDLE
     DXLClass() = default;   \
     DXLClass(D3D12Interface* d3d12Interface) { underlying = d3d12Interface; }   \
     D3D12Interface* ConversionFuncName() const { return reinterpret_cast<D3D12Interface*>(underlying); }     \
-    DXLClass* operator->() { return this; }
+    DXLClass* operator->() { return this; }     \
+    operator D3D12Interface*() { return ConversionFuncName(); }
 
 class DXLBase
 {
@@ -258,16 +259,31 @@ public:
     D3D12_COMMAND_LIST_TYPE GetType() const;
 
     HRESULT Close();
-
     HRESULT Reset(DXLCommandAllocator allocator, DXLPipelineState pipelineState = DXLPipelineState());
 
     void ClearState(DXLPipelineState pipelineState = DXLPipelineState());
 
-    void DrawInstanced(uint32_t VertexCountPerInstance, uint32_t InstanceCount, uint32_t StartVertexLocation, uint32_t StartInstanceLocation);
+    void DrawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount, uint32_t startVertexLocation, uint32_t startInstanceLocation);
+    void DrawIndexedInstanced(uint32_t indexCountPerInstance, uint32_t instanceCount, uint32_t startIndexLocation, int32_t baseVertexLocation, uint32_t startInstanceLocation);
 
-    void DrawIndexedInstanced(uint32_t IndexCountPerInstance, uint32_t InstanceCount, uint32_t StartIndexLocation, int32_t BaseVertexLocation, uint32_t StartInstanceLocation);
+    void Dispatch(uint32_t threadGroupCountX, uint32_t threadGroupCountY, uint32_t threadGroupCountZ);
 
-    void Dispatch(uint32_t ThreadGroupCountX, uint32_t ThreadGroupCountY, uint32_t ThreadGroupCountZ);
+    void CopyBufferRegion(DXLResource dstBuffer, uint64_t dstOffset, DXLResource srcBuffer, uint64_t srcOffset, uint64_t numBytes);
+    void CopyTextureRegion(const D3D12_TEXTURE_COPY_LOCATION* dst, uint32_t dstX, uint32_t dstY, uint32_t dstZ, const D3D12_TEXTURE_COPY_LOCATION* src, const D3D12_BOX* srcBox);
+    void CopyResource(DXLResource dstResource, DXLResource srcResource);
+    void CopyTiles(DXLResource tiledResource, const D3D12_TILED_RESOURCE_COORDINATE* tileRegionStartCoordinate, const D3D12_TILE_REGION_SIZE* tileRegionSize, DXLResource buffer, uint64_t bufferStartOffsetInBytes, D3D12_TILE_COPY_FLAGS flags);
+
+    void ResolveSubresource(DXLResource dstResource, uint32_t dstSubresource, DXLResource srcResource, uint32_t srcSubresource, DXGI_FORMAT format);
+
+    void IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY primitiveTopology);
+
+    void RSSetViewports(uint32_t numViewports, const D3D12_VIEWPORT* viewports);
+    void RSSetScissorRects(uint32_t numRects, const D3D12_RECT* rects);
+
+    void OMSetBlendFactor(const float blendFactor[4]);
+    void OMSetStencilRef(uint32_t stencilRef);
+
+    void SetPipelineState(DXLPipelineState pipelineState);
 };
 
 } // namespace dxl

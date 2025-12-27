@@ -222,4 +222,88 @@ D3D12_COMMAND_LIST_TYPE DXLCommandList::GetType() const
     return ToID3D12CommandList()->GetType();
 }
 
+HRESULT DXLCommandList::Close()
+{
+    return ToID3D12CommandList()->Close();
+}
+
+HRESULT DXLCommandList::Reset(DXLCommandAllocator allocator, DXLPipelineState pipelineState)
+{
+    return ToID3D12CommandList()->Reset(allocator, pipelineState);
+}
+
+void DXLCommandList::ClearState(DXLPipelineState pipelineState)
+{
+    ToID3D12CommandList()->ClearState(pipelineState);
+}
+
+void DXLCommandList::DrawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount, uint32_t startVertexLocation, uint32_t startInstanceLocation)
+{
+    ToID3D12CommandList()->DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation);
+}
+
+void DXLCommandList::DrawIndexedInstanced(uint32_t indexCountPerInstance, uint32_t instanceCount, uint32_t startIndexLocation, int32_t baseVertexLocation, uint32_t startInstanceLocation)
+{
+    ToID3D12CommandList()->DrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+}
+
+void DXLCommandList::Dispatch(uint32_t threadGroupCountX, uint32_t threadGroupCountY, uint32_t threadGroupCountZ)
+{
+    ToID3D12CommandList()->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
+}
+
+void DXLCommandList::CopyBufferRegion(DXLResource dstBuffer, uint64_t dstOffset, DXLResource srcBuffer, uint64_t srcOffset, uint64_t numBytes)
+{
+    ToID3D12CommandList()->CopyBufferRegion(dstBuffer, dstOffset, srcBuffer, srcOffset, numBytes);
+}
+
+void DXLCommandList::CopyTextureRegion(const D3D12_TEXTURE_COPY_LOCATION* dst, uint32_t dstX, uint32_t dstY, uint32_t dstZ, const D3D12_TEXTURE_COPY_LOCATION* src, const D3D12_BOX* srcBox)
+{
+    ToID3D12CommandList()->CopyTextureRegion(dst, dstX, dstY, dstZ, src, srcBox);
+}
+
+void DXLCommandList::CopyResource(DXLResource dstResource, DXLResource srcResource)
+{
+    ToID3D12CommandList()->CopyResource(dstResource, srcResource);
+}
+
+void DXLCommandList::CopyTiles(DXLResource tiledResource, const D3D12_TILED_RESOURCE_COORDINATE* tileRegionStartCoordinate, const D3D12_TILE_REGION_SIZE* tileRegionSize, DXLResource buffer, uint64_t bufferStartOffsetInBytes, D3D12_TILE_COPY_FLAGS flags)
+{
+    ToID3D12CommandList()->CopyTiles(tiledResource, tileRegionStartCoordinate, tileRegionSize, buffer, bufferStartOffsetInBytes, flags);
+}
+
+void DXLCommandList::ResolveSubresource(DXLResource dstResource, uint32_t dstSubresource, DXLResource srcResource, uint32_t srcSubresource, DXGI_FORMAT format)
+{
+    ToID3D12CommandList()->ResolveSubresource(dstResource, dstSubresource, srcResource, srcSubresource, format);
+}
+void DXLCommandList::IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY primitiveTopology)
+{
+    ToID3D12CommandList()->IASetPrimitiveTopology(primitiveTopology);
+}
+
+void DXLCommandList::RSSetViewports(uint32_t numViewports, const D3D12_VIEWPORT* viewports)
+{
+    ToID3D12CommandList()->RSSetViewports(numViewports, viewports);
+}
+
+void DXLCommandList::RSSetScissorRects(uint32_t numRects, const D3D12_RECT* rects)
+{
+    ToID3D12CommandList()->RSSetScissorRects(numRects, rects);
+}
+
+void DXLCommandList::OMSetBlendFactor(const float blendFactor[4])
+{
+    ToID3D12CommandList()->OMSetBlendFactor(blendFactor);
+}
+
+void DXLCommandList::OMSetStencilRef(uint32_t stencilRef)
+{
+    ToID3D12CommandList()->OMSetStencilRef(stencilRef);
+}
+
+void DXLCommandList::SetPipelineState(DXLPipelineState pipelineState)
+{
+    ToID3D12CommandList()->SetPipelineState(pipelineState);
+}
+
 } // namespace dxl
