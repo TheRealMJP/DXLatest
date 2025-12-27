@@ -82,7 +82,12 @@ struct DXL_INDEX_BUFFER_VIEW
     DXLClass(D3D12Interface* d3d12Interface) { underlying = d3d12Interface; }   \
     D3D12Interface* ToNative() const { return reinterpret_cast<D3D12Interface*>(underlying); }     \
     DXLClass* operator->() { return this; }     \
-    operator D3D12Interface*() const { return ToNative(); }
+    const DXLClass* operator->() const { return this; }     \
+    operator D3D12Interface*() const { return ToNative(); } \
+    bool operator==(D3D12Interface* other) const { return underlying == other; }    \
+    bool operator==(DXLClass other) const { return underlying == other.underlying; }    \
+    bool operator!=(D3D12Interface* other) const { return underlying != other; }    \
+    bool operator!=(DXLClass other) const { return underlying != other.underlying; }
 
 class DXLBase
 {
