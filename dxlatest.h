@@ -68,18 +68,13 @@ struct DXL_DESCRIPTOR_HEAP_DESC
     DXL_STRUCT_BOILERPLATE(DXL_DESCRIPTOR_HEAP_DESC, D3D12_DESCRIPTOR_HEAP_DESC);
 };
 
-struct DXL_CPU_DESCRIPTOR_HANDLE
+struct DXL_INDEX_BUFFER_VIEW
 {
-    size_t ptr = 0;
+    D3D12_GPU_VIRTUAL_ADDRESS BufferLocation = 0;
+    uint32_t SizeInBytes = 0;
+    DXGI_FORMAT Format = DXGI_FORMAT_R16_UINT;
 
-    DXL_STRUCT_BOILERPLATE(DXL_CPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE);
-};
-
-struct DXL_GPU_DESCRIPTOR_HANDLE
-{
-    uint64_t ptr = 0;
-
-    DXL_STRUCT_BOILERPLATE(DXL_GPU_DESCRIPTOR_HANDLE, D3D12_GPU_DESCRIPTOR_HANDLE);
+    DXL_STRUCT_BOILERPLATE(DXL_INDEX_BUFFER_VIEW, D3D12_INDEX_BUFFER_VIEW);
 };
 
 #define DXL_INTERFACE_BOILERPLATE(DXLClass, D3D12Interface, ConversionFuncName) \
@@ -230,8 +225,8 @@ public:
     DXL_INTERFACE_BOILERPLATE(DXLDescriptorHeap, ID3D12DescriptorHeap, ToID3D12DescriptorHeap);
 
     DXL_DESCRIPTOR_HEAP_DESC GetDesc();
-    DXL_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandleForHeapStart();
-    DXL_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandleForHeapStart();
+    D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandleForHeapStart();
+    D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandleForHeapStart();
 };
 
 class DXLQueryHeap : public DXLPageable
@@ -284,6 +279,45 @@ public:
     void OMSetStencilRef(uint32_t stencilRef);
 
     void SetPipelineState(DXLPipelineState pipelineState);
+
+    void SetDescriptorHeaps(uint32_t numDescriptorHeaps, ID3D12DescriptorHeap*const* descriptorHeaps);
+    void SetDescriptorHeaps(DXLDescriptorHeap srvUavCbvHeap, DXLDescriptorHeap samplerHeap = DXLDescriptorHeap());
+
+    void SetComputeRootSignature(DXLRootSignature rootSignature);
+    void SetGraphicsRootSignature(DXLRootSignature rootSignature);
+
+    void SetComputeRootDescriptorTable(uint32_t rootParameterIndex, D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor);
+    void SetGraphicsRootDescriptorTable(uint32_t rootParameterIndex, D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor);
+
+    void SetComputeRoot32BitConstant(uint32_t rootParameterIndex, uint32_t srcData, uint32_t destOffsetIn32BitValues);
+    void SetGraphicsRoot32BitConstant(uint32_t rootParameterIndex, uint32_t srcData, uint32_t destOffsetIn32BitValues);
+
+    void SetComputeRoot32BitConstants(uint32_t rootParameterIndex, uint32_t num32BitValuesToSet, const void* srcData, uint32_t destOffsetIn32BitValues);
+    void SetGraphicsRoot32BitConstants(uint32_t rootParameterIndex, uint32_t num32BitValuesToSet, const void* srcData, uint32_t destOffsetIn32BitValues);
+
+    void SetComputeRootConstantBufferView(uint32_t rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation);
+    void SetGraphicsRootConstantBufferView(uint32_t rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation);
+    void SetComputeRootShaderResourceView(uint32_t rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation);
+    void SetGraphicsRootShaderResourceView(uint32_t rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation);
+    void SetComputeRootUnorderedAccessView(uint32_t rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation);
+    void SetGraphicsRootUnorderedAccessView(uint32_t rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation);
+
+    void IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view);
+    void IASetIndexBuffer(DXL_INDEX_BUFFER_VIEW view);
+
+    void OMSetRenderTargets(uint32_t numRenderTargetDescriptors, const D3D12_CPU_DESCRIPTOR_HANDLE* renderTargetDescriptors, bool rtIsSingleHandleToDescriptorRange, const D3D12_CPU_DESCRIPTOR_HANDLE* depthStencilDescriptor);
+    void ClearDepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView, D3D12_CLEAR_FLAGS clearFlags,float depth, uint8_t stencil, uint32_t numRects, const D3D12_RECT* rects);
+    void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView, const float colorRGBA[4], uint32_t numRects, const D3D12_RECT* rects);
+    void ClearUnorderedAccessViewUint(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const UINT values[4], uint32_t numRects, const D3D12_RECT* rects);
+    void ClearUnorderedAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const FLOAT values[4], uint32_t numRects, const D3D12_RECT* rects);
+    void DiscardResource(DXLResource resource, const D3D12_DISCARD_REGION* region);
+
+    void BeginQuery(DXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t index);
+    void EndQuery(DXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t index);
+    void ResolveQueryData(DXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t startIndex, uint32_t numQueries, DXLResource destinationBuffer, uint64_t alignedDestinationBufferOffset);
+    void SetPredication(DXLResource buffer, uint64_t alignedBufferOffset, D3D12_PREDICATION_OP operation);
+
+    void ExecuteIndirect(DXLCommandSignature commandSignature, uint32_t maxCommandCount, DXLResource argumentBuffer, uint64_t argumentBufferOffset, DXLResource countBuffer, uint64_t countBufferOffset);
 };
 
 } // namespace dxl

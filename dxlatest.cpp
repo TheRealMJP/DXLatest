@@ -205,14 +205,14 @@ DXL_DESCRIPTOR_HEAP_DESC DXLDescriptorHeap::GetDesc()
     return DXL_DESCRIPTOR_HEAP_DESC(ToID3D12DescriptorHeap()->GetDesc());
 }
 
-DXL_CPU_DESCRIPTOR_HANDLE DXLDescriptorHeap::GetCPUDescriptorHandleForHeapStart()
+D3D12_CPU_DESCRIPTOR_HANDLE DXLDescriptorHeap::GetCPUDescriptorHandleForHeapStart()
 {
-    return DXL_CPU_DESCRIPTOR_HANDLE(ToID3D12DescriptorHeap()->GetCPUDescriptorHandleForHeapStart());
+    return ToID3D12DescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 }
 
-DXL_GPU_DESCRIPTOR_HANDLE DXLDescriptorHeap::GetGPUDescriptorHandleForHeapStart()
+D3D12_GPU_DESCRIPTOR_HANDLE DXLDescriptorHeap::GetGPUDescriptorHandleForHeapStart()
 {
-    return DXL_GPU_DESCRIPTOR_HANDLE(ToID3D12DescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
+    return ToID3D12DescriptorHeap()->GetGPUDescriptorHandleForHeapStart();
 }
 
 // == DXLCommandList =====================================================
@@ -304,6 +304,153 @@ void DXLCommandList::OMSetStencilRef(uint32_t stencilRef)
 void DXLCommandList::SetPipelineState(DXLPipelineState pipelineState)
 {
     ToID3D12CommandList()->SetPipelineState(pipelineState);
+}
+
+void DXLCommandList::SetDescriptorHeaps(uint32_t numDescriptorHeaps, ID3D12DescriptorHeap*const* descriptorHeaps)
+{
+    ToID3D12CommandList()->SetDescriptorHeaps(numDescriptorHeaps, descriptorHeaps);
+}
+
+void DXLCommandList::SetDescriptorHeaps(DXLDescriptorHeap srvUavCbvHeap, DXLDescriptorHeap samplerHeap)
+{
+    ID3D12DescriptorHeap* heaps[] = { srvUavCbvHeap, samplerHeap };
+    ToID3D12CommandList()->SetDescriptorHeaps(samplerHeap.ToID3D12DescriptorHeap() ? 2 : 1, heaps);
+}
+
+void DXLCommandList::SetComputeRootSignature(DXLRootSignature rootSignature)
+{
+    ToID3D12CommandList()->SetComputeRootSignature(rootSignature);
+}
+
+void DXLCommandList::SetGraphicsRootSignature(DXLRootSignature rootSignature)
+{
+    ToID3D12CommandList()->SetGraphicsRootSignature(rootSignature);
+}
+
+void DXLCommandList::SetComputeRootDescriptorTable(uint32_t rootParameterIndex, D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor)
+{
+    ToID3D12CommandList()->SetComputeRootDescriptorTable(rootParameterIndex, baseDescriptor);
+}
+
+void DXLCommandList::SetGraphicsRootDescriptorTable(uint32_t rootParameterIndex, D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor)
+{
+    ToID3D12CommandList()->SetGraphicsRootDescriptorTable(rootParameterIndex, baseDescriptor);
+}
+
+void DXLCommandList::SetComputeRoot32BitConstant(uint32_t rootParameterIndex, uint32_t srcData, uint32_t destOffsetIn32BitValues)
+{
+    ToID3D12CommandList()->SetComputeRoot32BitConstant(rootParameterIndex, srcData, destOffsetIn32BitValues);
+}
+
+void DXLCommandList::SetGraphicsRoot32BitConstant(uint32_t rootParameterIndex, uint32_t srcData, uint32_t destOffsetIn32BitValues)
+{
+    ToID3D12CommandList()->SetGraphicsRoot32BitConstant(rootParameterIndex, srcData, destOffsetIn32BitValues);
+}
+
+void DXLCommandList::SetComputeRoot32BitConstants(uint32_t rootParameterIndex, uint32_t num32BitValuesToSet, const void* srcData, uint32_t destOffsetIn32BitValues)
+{
+    ToID3D12CommandList()->SetComputeRoot32BitConstants(rootParameterIndex, num32BitValuesToSet, srcData, destOffsetIn32BitValues);
+}
+
+void DXLCommandList::SetGraphicsRoot32BitConstants(uint32_t rootParameterIndex, uint32_t num32BitValuesToSet, const void* srcData, uint32_t destOffsetIn32BitValues)
+{
+    ToID3D12CommandList()->SetGraphicsRoot32BitConstants(rootParameterIndex, num32BitValuesToSet, srcData, destOffsetIn32BitValues);
+}
+
+void DXLCommandList::SetComputeRootConstantBufferView(uint32_t rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation)
+{
+    ToID3D12CommandList()->SetComputeRootConstantBufferView(rootParameterIndex, bufferLocation);
+}
+
+void DXLCommandList::SetGraphicsRootConstantBufferView(uint32_t rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation)
+{
+    ToID3D12CommandList()->SetGraphicsRootConstantBufferView(rootParameterIndex, bufferLocation);
+}
+
+void DXLCommandList::SetComputeRootShaderResourceView(uint32_t rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation)
+{
+    ToID3D12CommandList()->SetComputeRootShaderResourceView(rootParameterIndex, bufferLocation);
+}
+
+void DXLCommandList::SetGraphicsRootShaderResourceView(uint32_t rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation)
+{
+    ToID3D12CommandList()->SetGraphicsRootShaderResourceView(rootParameterIndex, bufferLocation);
+}
+
+void DXLCommandList::SetComputeRootUnorderedAccessView(uint32_t rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation)
+{
+    ToID3D12CommandList()->SetComputeRootUnorderedAccessView(rootParameterIndex, bufferLocation);
+}
+
+void DXLCommandList::SetGraphicsRootUnorderedAccessView(uint32_t rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation)
+{
+    ToID3D12CommandList()->SetGraphicsRootUnorderedAccessView(rootParameterIndex, bufferLocation);
+}
+
+void DXLCommandList::IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view)
+{
+    ToID3D12CommandList()->IASetIndexBuffer(view);
+}
+
+void DXLCommandList::IASetIndexBuffer(DXL_INDEX_BUFFER_VIEW view)
+{
+    D3D12_INDEX_BUFFER_VIEW d3d12View = view;
+    ToID3D12CommandList()->IASetIndexBuffer(&d3d12View);
+}
+
+void DXLCommandList::OMSetRenderTargets(uint32_t numRenderTargetDescriptors, const D3D12_CPU_DESCRIPTOR_HANDLE* renderTargetDescriptors, bool rtIsSingleHandleToDescriptorRange, const D3D12_CPU_DESCRIPTOR_HANDLE* depthStencilDescriptor)
+{
+    ToID3D12CommandList()->OMSetRenderTargets(numRenderTargetDescriptors, renderTargetDescriptors, rtIsSingleHandleToDescriptorRange, depthStencilDescriptor);
+}
+
+void DXLCommandList::ClearDepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView, D3D12_CLEAR_FLAGS clearFlags,float depth, uint8_t stencil, uint32_t numRects, const D3D12_RECT* rects)
+{
+    ToID3D12CommandList()->ClearDepthStencilView(depthStencilView, clearFlags, depth, stencil, numRects, rects);
+}
+
+void DXLCommandList::ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView, const float colorRGBA[4], uint32_t numRects, const D3D12_RECT* rects)
+{
+    ToID3D12CommandList()->ClearRenderTargetView(renderTargetView, colorRGBA, numRects, rects);
+}
+
+void DXLCommandList::ClearUnorderedAccessViewUint(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const UINT values[4], uint32_t numRects, const D3D12_RECT* rects)
+{
+    ToID3D12CommandList()->ClearUnorderedAccessViewUint(viewGPUHandleInCurrentHeap, viewCPUHandle, resource, values, numRects, rects);
+}
+
+void DXLCommandList::ClearUnorderedAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const FLOAT values[4], uint32_t numRects, const D3D12_RECT* rects)
+{
+    ToID3D12CommandList()->ClearUnorderedAccessViewFloat(viewGPUHandleInCurrentHeap, viewCPUHandle, resource, values, numRects, rects);
+}
+
+void DXLCommandList::DiscardResource(DXLResource resource, const D3D12_DISCARD_REGION* region)
+{
+    ToID3D12CommandList()->DiscardResource(resource, region);
+}
+
+void DXLCommandList::BeginQuery(DXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t index)
+{
+    ToID3D12CommandList()->BeginQuery(queryHeap, type, index);
+}
+
+void DXLCommandList::EndQuery(DXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t index)
+{
+    ToID3D12CommandList()->EndQuery(queryHeap, type, index);
+}
+
+void DXLCommandList::ResolveQueryData(DXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t startIndex, uint32_t numQueries, DXLResource destinationBuffer, uint64_t alignedDestinationBufferOffset)
+{
+    ToID3D12CommandList()->ResolveQueryData(queryHeap, type, startIndex, numQueries, destinationBuffer, alignedDestinationBufferOffset);
+}
+
+void DXLCommandList::SetPredication(DXLResource buffer, uint64_t alignedBufferOffset, D3D12_PREDICATION_OP operation)
+{
+    ToID3D12CommandList()->SetPredication(buffer, alignedBufferOffset, operation);
+}
+
+void DXLCommandList::ExecuteIndirect(DXLCommandSignature commandSignature, uint32_t maxCommandCount, DXLResource argumentBuffer, uint64_t argumentBufferOffset, DXLResource countBuffer, uint64_t countBufferOffset)
+{
+    ToID3D12CommandList()->ExecuteIndirect(commandSignature, maxCommandCount, argumentBuffer, argumentBufferOffset, countBuffer, countBufferOffset);
 }
 
 } // namespace dxl
