@@ -136,6 +136,18 @@ Other Design Decisions
 - Annoying to replicate
 - Take up lots of space
 
+### Standard Types for Parameters
+
+* Could be nicer than the Windows types
+* But maybe it's just different for little benefit?
+
+### Exposing Extension Methods
+
+* On the same interface?
+* Make a different interface with the extensions?
+* Have a naming convention?
+* Enable/disable with a macro?
+
 What To Deprecate
 =================
 
@@ -145,6 +157,7 @@ What To Deprecate
 * Bundles
 * Legacy barriers
 * PSO libraries
+* Stream Out
 
 ### Maybes
 
@@ -153,8 +166,16 @@ What To Deprecate
     * Could also remove descriptor copying maybe?
     * Need to check out root sig desc
 
+* CPU-visible descriptor heaps
+    * They're fairly pointless for SRV/UAV/CBV/Sampler heaps but the concept still needs to exist for RTV/DSV heaps
+    * Also needed for ClearUnorderedAccessView
+
+* Copying descriptors
+    * Only relevant for CPU-visible descriptor heaps, pointerless for bindless
+    * Maybe still useful for ClearUnorderedAccessView?
+
 * ClearUnorderedAccessView?
-    * Can't have this if we get rid of CPU-visible heaps, which is suuuuuper annoying
+    * Can't hide this if we get rid of CPU-visible heaps, which is annoying
     * Tough to provide as a helper implementation I think because you would need PSO
 
 * Root signatures?
@@ -189,14 +210,19 @@ Auto-Generation vs. Hand Writing
 ================================
 
 * IDL (MIDL) seems not too hard make a crappy parser for, at least the D3D12 subset
-* MIDL compiler doesn't seem useful, but maybe there's a useful library somewhere? Couldn't immediately find one.
-* Would be easy to have a list of interfaces/methods to include, and results for converting parameter types if desired
-* How to include inline comments?
-* How to include extension methods?
-* Could maybe save a lot of time even on the intitial rev, or maybe could be useful for generating custom cuts with options
-* Would definitely be nice for keeping up with future additions
+    * MIDL compiler doesn't seem useful, but maybe there's a useful library somewhere? Couldn't immediately find one.
+    * Would be easy to have a list of interfaces/methods to include, and results for converting parameter types if desired
+    * How to include inline comments?
+    * How to include extension methods?
+    * Could maybe save a lot of time even on the intitial rev, or maybe could be useful for generating custom cuts with options
+    * Would definitely be nice for keeping up with future additions
 
 * Hand written is obviously full control
-* Time consuming
-* Easy to interleave comments and extensions
-* Can use macros for certain amounts of boilerplate, as well as for certain configuration options
+    * Time consuming
+    * Easy to interleave comments and extensions
+    * Can use macros for certain amounts of boilerplate, as well as for certain configuration options
+
+* Maybe have a "source" header and then preprocess into an output?
+    * That would be neat for making custom cuts and leaving the output clean
+    * Would have to look into what preprocessor to use, options, etc.
+    * Comments would need to survive
