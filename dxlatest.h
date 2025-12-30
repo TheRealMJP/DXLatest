@@ -9,6 +9,11 @@
     DXLStruct(D3D12Struct d3d12Struct) { memcpy(this, &d3d12Struct, sizeof(DXLStruct)); }        \
     operator D3D12Struct() const { D3D12Struct d3d12Struct = { }; memcpy(&d3d12Struct, this, sizeof(DXLStruct)); return d3d12Struct; }
 
+#define DXL_ENABLE_DESCRIPTOR_TABLES() true
+#define DXL_ENABLE_CLEAR_UAV() true
+#define DXL_ENABLE_VIEW_INSTANCING() true
+
+#define DXL_ENABLE_EXTENSIONS() true
 
 namespace dxl
 {
@@ -34,13 +39,6 @@ struct DXL_HEAP_DESC
     DXL_STRUCT_BOILERPLATE(DXL_HEAP_DESC, D3D12_HEAP_DESC);
 };
 
-struct DXL_MIP_REGION
-{
-    uint32_t Width = 0;
-    uint32_t Height = 0;
-    uint32_t Depth = 0;
-};
-
 struct DXL_RESOURCE_DESC
 {
     D3D12_RESOURCE_DIMENSION Dimension = D3D12_RESOURCE_DIMENSION_UNKNOWN;
@@ -53,7 +51,7 @@ struct DXL_RESOURCE_DESC
     DXGI_SAMPLE_DESC SampleDesc = { 1, 0 };
     D3D12_TEXTURE_LAYOUT Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
     D3D12_RESOURCE_FLAGS Flags = D3D12_RESOURCE_FLAG_NONE;
-    DXL_MIP_REGION SamplerFeedbackMipRegion = { };
+    D3D12_MIP_REGION SamplerFeedbackMipRegion = { };
 
     DXL_STRUCT_BOILERPLATE(DXL_RESOURCE_DESC, D3D12_RESOURCE_DESC1);
 };
@@ -128,7 +126,10 @@ public:
     HRESULT SetPrivateData(REFGUID guid, uint32_t dataSize, const void *data);
     HRESULT SetPrivateDataInterface(REFGUID guid, const IUnknown* data);
     HRESULT SetName(const wchar_t* name);
+
+#if DXL_ENABLE_EXTENSIONS()
     HRESULT SetName(const char* name);
+#endif
 };
 
 class DXLDeviceChild : public DXLObject
@@ -291,13 +292,17 @@ public:
     void SetPipelineState(DXLPipelineState pipelineState);
 
     void SetDescriptorHeaps(uint32_t numDescriptorHeaps, ID3D12DescriptorHeap*const* descriptorHeaps);
+#if DXL_ENABLE_EXTENSIONS()
     void SetDescriptorHeaps(DXLDescriptorHeap srvUavCbvHeap, DXLDescriptorHeap samplerHeap = DXLDescriptorHeap());
+#endif
 
     void SetComputeRootSignature(DXLRootSignature rootSignature);
     void SetGraphicsRootSignature(DXLRootSignature rootSignature);
 
+#if DXL_ENABLE_DESCRIPTOR_TABLES()
     void SetComputeRootDescriptorTable(uint32_t rootParameterIndex, D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor);
     void SetGraphicsRootDescriptorTable(uint32_t rootParameterIndex, D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor);
+#endif
 
     void SetComputeRoot32BitConstant(uint32_t rootParameterIndex, uint32_t srcData, uint32_t destOffsetIn32BitValues);
     void SetGraphicsRoot32BitConstant(uint32_t rootParameterIndex, uint32_t srcData, uint32_t destOffsetIn32BitValues);
@@ -313,14 +318,19 @@ public:
     void SetGraphicsRootUnorderedAccessView(uint32_t rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation);
 
     void IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view);
+#if DXL_ENABLE_EXTENSIONS()
     void IASetIndexBuffer(DXL_INDEX_BUFFER_VIEW view);
+#endif
 
     void OMSetRenderTargets(uint32_t numRenderTargetDescriptors, const D3D12_CPU_DESCRIPTOR_HANDLE* renderTargetDescriptors, bool rtIsSingleHandleToDescriptorRange, const D3D12_CPU_DESCRIPTOR_HANDLE* depthStencilDescriptor);
     void ClearDepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView, D3D12_CLEAR_FLAGS clearFlags,float depth, uint8_t stencil, uint32_t numRects, const D3D12_RECT* rects);
     void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView, const float colorRGBA[4], uint32_t numRects, const D3D12_RECT* rects);
+    void DiscardResource(DXLResource resource, const D3D12_DISCARD_REGION* region);
+
+#if DXL_ENABLE_CLEAR_UAV()
     void ClearUnorderedAccessViewUint(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const UINT values[4], uint32_t numRects, const D3D12_RECT* rects);
     void ClearUnorderedAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const FLOAT values[4], uint32_t numRects, const D3D12_RECT* rects);
-    void DiscardResource(DXLResource resource, const D3D12_DISCARD_REGION* region);
+#endif
 
     void BeginQuery(DXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t index);
     void EndQuery(DXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t index);
@@ -328,6 +338,47 @@ public:
     void SetPredication(DXLResource buffer, uint64_t alignedBufferOffset, D3D12_PREDICATION_OP operation);
 
     void ExecuteIndirect(DXLCommandSignature commandSignature, uint32_t maxCommandCount, DXLResource argumentBuffer, uint64_t argumentBufferOffset, DXLResource countBuffer, uint64_t countBufferOffset);
+
+    void AtomicCopyBufferUINT(
+        ID3D12Resource* dstBuffer,
+        uint64_t dstOffset,
+        ID3D12Resource* srcBuffer,
+        uint64_t srcOffset,
+        uint32_t dependencies, // 0 Dependencies means only the dst buffer offset is synchronized
+        ID3D12Resource*const* dependentResources,
+        const D3D12_SUBRESOURCE_RANGE_UINT64* dependentSubresourceRanges
+    );
+
+    // UINT64 is only valid on UMA architectures
+    void AtomicCopyBufferUINT64(
+        DXLResource dstBuffer,
+        uint64_t dstOffset,
+        DXLResource srcBuffer,
+        uint64_t srcOffset,
+        uint32_t dependencies, // 0 Dependencies means only the dst buffer offset is synchronized
+        ID3D12Resource*const* dependentResources,
+        const D3D12_SUBRESOURCE_RANGE_UINT64* dependentSubresourceRanges
+    );
+
+    void OMSetDepthBounds(float min, float max);
+
+    void SetSamplePositions(uint32_t numSamplesPerPixel, uint32_t numPixels, D3D12_SAMPLE_POSITION* samplePositions);
+
+    void ResolveSubresourceRegion(
+        DXLResource dstResource,
+        uint32_t dstSubresource,
+        uint32_t dstX,
+        uint32_t dstY,
+        DXLResource srcResource,
+        uint32_t srcSubresource,
+        D3D12_RECT* srcRect,
+        DXGI_FORMAT format,
+        D3D12_RESOLVE_MODE resolveMode
+    );
+
+#if DXL_ENABLE_VIEW_INSTANCING()
+    void SetViewInstanceMask(uint32_t mask);
+#endif
 };
 
 } // namespace dxl

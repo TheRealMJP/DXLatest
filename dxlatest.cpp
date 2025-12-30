@@ -14,7 +14,6 @@ namespace dxl
 
 static_assert(sizeof(DXL_HEAP_PROPERTIES) == sizeof(D3D12_HEAP_PROPERTIES));
 static_assert(sizeof(DXL_HEAP_DESC) == sizeof(D3D12_HEAP_DESC));
-static_assert(sizeof(DXL_MIP_REGION) == sizeof(D3D12_MIP_REGION));
 static_assert(sizeof(DXL_RESOURCE_DESC) == sizeof(D3D12_RESOURCE_DESC1));
 
 // == DXLBase ======================================================
@@ -56,6 +55,8 @@ HRESULT DXLObject::SetName(const wchar_t* name)
     return ToNative()->SetName(name);
 }
 
+#if DXL_ENABLE_EXTENSIONS()
+
 HRESULT DXLObject::SetName(const char* name)
 {
     const int32_t numChars = MultiByteToWideChar(CP_UTF8, 0, name, -1, nullptr, 0);
@@ -69,6 +70,8 @@ HRESULT DXLObject::SetName(const char* name)
 
     return hr;
 }
+
+#endif
 
 // == DXLDeviceChild ======================================================
 
@@ -311,11 +314,15 @@ void DXLCommandList::SetDescriptorHeaps(uint32_t numDescriptorHeaps, ID3D12Descr
     ToNative()->SetDescriptorHeaps(numDescriptorHeaps, descriptorHeaps);
 }
 
+#if DXL_ENABLE_EXTENSIONS()
+
 void DXLCommandList::SetDescriptorHeaps(DXLDescriptorHeap srvUavCbvHeap, DXLDescriptorHeap samplerHeap)
 {
     ID3D12DescriptorHeap* heaps[] = { srvUavCbvHeap, samplerHeap };
     ToNative()->SetDescriptorHeaps(samplerHeap ? 2 : 1, heaps);
 }
+
+#endif
 
 void DXLCommandList::SetComputeRootSignature(DXLRootSignature rootSignature)
 {
@@ -327,6 +334,8 @@ void DXLCommandList::SetGraphicsRootSignature(DXLRootSignature rootSignature)
     ToNative()->SetGraphicsRootSignature(rootSignature);
 }
 
+#if DXL_ENABLE_DESCRIPTOR_TABLES()
+
 void DXLCommandList::SetComputeRootDescriptorTable(uint32_t rootParameterIndex, D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor)
 {
     ToNative()->SetComputeRootDescriptorTable(rootParameterIndex, baseDescriptor);
@@ -336,6 +345,8 @@ void DXLCommandList::SetGraphicsRootDescriptorTable(uint32_t rootParameterIndex,
 {
     ToNative()->SetGraphicsRootDescriptorTable(rootParameterIndex, baseDescriptor);
 }
+
+#endif
 
 void DXLCommandList::SetComputeRoot32BitConstant(uint32_t rootParameterIndex, uint32_t srcData, uint32_t destOffsetIn32BitValues)
 {
@@ -392,11 +403,15 @@ void DXLCommandList::IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view)
     ToNative()->IASetIndexBuffer(view);
 }
 
+#if DXL_ENABLE_EXTENSIONS()
+
 void DXLCommandList::IASetIndexBuffer(DXL_INDEX_BUFFER_VIEW view)
 {
     D3D12_INDEX_BUFFER_VIEW d3d12View = view;
     ToNative()->IASetIndexBuffer(&d3d12View);
 }
+
+#endif
 
 void DXLCommandList::OMSetRenderTargets(uint32_t numRenderTargetDescriptors, const D3D12_CPU_DESCRIPTOR_HANDLE* renderTargetDescriptors, bool rtIsSingleHandleToDescriptorRange, const D3D12_CPU_DESCRIPTOR_HANDLE* depthStencilDescriptor)
 {
@@ -413,6 +428,13 @@ void DXLCommandList::ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE renderTar
     ToNative()->ClearRenderTargetView(renderTargetView, colorRGBA, numRects, rects);
 }
 
+void DXLCommandList::DiscardResource(DXLResource resource, const D3D12_DISCARD_REGION* region)
+{
+    ToNative()->DiscardResource(resource, region);
+}
+
+#if DXL_ENABLE_CLEAR_UAV()
+
 void DXLCommandList::ClearUnorderedAccessViewUint(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const UINT values[4], uint32_t numRects, const D3D12_RECT* rects)
 {
     ToNative()->ClearUnorderedAccessViewUint(viewGPUHandleInCurrentHeap, viewCPUHandle, resource, values, numRects, rects);
@@ -423,10 +445,7 @@ void DXLCommandList::ClearUnorderedAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE v
     ToNative()->ClearUnorderedAccessViewFloat(viewGPUHandleInCurrentHeap, viewCPUHandle, resource, values, numRects, rects);
 }
 
-void DXLCommandList::DiscardResource(DXLResource resource, const D3D12_DISCARD_REGION* region)
-{
-    ToNative()->DiscardResource(resource, region);
-}
+#endif
 
 void DXLCommandList::BeginQuery(DXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t index)
 {
@@ -452,5 +471,38 @@ void DXLCommandList::ExecuteIndirect(DXLCommandSignature commandSignature, uint3
 {
     ToNative()->ExecuteIndirect(commandSignature, maxCommandCount, argumentBuffer, argumentBufferOffset, countBuffer, countBufferOffset);
 }
+
+void DXLCommandList::AtomicCopyBufferUINT(ID3D12Resource* dstBuffer, uint64_t dstOffset, ID3D12Resource* srcBuffer, uint64_t srcOffset, uint32_t dependencies, ID3D12Resource*const* dependentResources, const D3D12_SUBRESOURCE_RANGE_UINT64* dependentSubresourceRanges)
+{
+    ToNative()->AtomicCopyBufferUINT(dstBuffer, dstOffset, srcBuffer, srcOffset, dependencies, dependentResources, dependentSubresourceRanges);
+}
+
+// UINT64 is only valid on UMA architectures
+void DXLCommandList::AtomicCopyBufferUINT64(DXLResource dstBuffer, uint64_t dstOffset, DXLResource srcBuffer, uint64_t srcOffset, uint32_t dependencies, ID3D12Resource*const* dependentResources, const D3D12_SUBRESOURCE_RANGE_UINT64* dependentSubresourceRanges)
+{
+    ToNative()->AtomicCopyBufferUINT64(dstBuffer, dstOffset, srcBuffer, srcOffset, dependencies, dependentResources, dependentSubresourceRanges);
+}
+
+void DXLCommandList::OMSetDepthBounds(float min, float max)
+{
+    ToNative()->OMSetDepthBounds(min, max);
+}
+
+void DXLCommandList::SetSamplePositions(uint32_t numSamplesPerPixel, uint32_t numPixels, D3D12_SAMPLE_POSITION* samplePositions)
+{
+    ToNative()->SetSamplePositions(numSamplesPerPixel, numPixels, samplePositions);
+}
+
+void DXLCommandList::ResolveSubresourceRegion(DXLResource dstResource, uint32_t dstSubresource, uint32_t dstX, uint32_t dstY, DXLResource srcResource, uint32_t srcSubresource, D3D12_RECT* srcRect, DXGI_FORMAT format, D3D12_RESOLVE_MODE resolveMode)
+{
+    ToNative()->ResolveSubresourceRegion(dstResource, dstSubresource, dstX, dstY, srcResource, srcSubresource, srcRect, format, resolveMode);
+}
+
+#if DXL_ENABLE_VIEW_INSTANCING()
+void DXLCommandList::SetViewInstanceMask(uint32_t mask)
+{
+    ToNative()->SetViewInstanceMask(mask);
+}
+#endif
 
 } // namespace dxl

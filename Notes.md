@@ -199,6 +199,10 @@ What To Deprecate
     * Not often used, but occasionally still useful
     * It has a bit of API surface area
 
+* View instancing
+    * Really not that useful
+    * API surface is modest
+
 Helper Functions and Extensions
 ===============================
 
