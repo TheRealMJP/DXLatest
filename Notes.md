@@ -226,3 +226,4 @@ Auto-Generation vs. Hand Writing
     * That would be neat for making custom cuts and leaving the output clean
     * Would have to look into what preprocessor to use, options, etc.
     * Comments would need to survive
+    * msvc preprocessor doesn't seem super promising for this, not a lot of options ands includes get expanded.
