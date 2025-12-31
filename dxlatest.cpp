@@ -853,6 +853,16 @@ HRESULT DXLDevice::CreatePipelineState(const D3D12_PIPELINE_STATE_STREAM_DESC* d
     return ToNative()->CreatePipelineState(desc, riid, outPipelineState);
 }
 
+HRESULT DXLDevice::CreateStateObject(const D3D12_STATE_OBJECT_DESC* desc, REFIID riid, void** outStateObject)
+{
+    return ToNative()->CreateStateObject(desc, riid, outStateObject);
+}
+
+HRESULT DXLDevice::AddToStateObject(const D3D12_STATE_OBJECT_DESC* addition, DXLStateObject stateObjectToGrowFrom, REFIID riid, void** outNewStateObject)
+{
+    return ToNative()->AddToStateObject(addition, stateObjectToGrowFrom, riid, outNewStateObject);
+}
+
 HRESULT DXLDevice::CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_DESC* descriptorHeapDesc, REFIID riid, void** outHeap)
 {
     return ToNative()->CreateDescriptorHeap(descriptorHeapDesc, riid, outHeap);
@@ -863,9 +873,14 @@ uint32_t DXLDevice::GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE 
     return ToNative()->GetDescriptorHandleIncrementSize(descriptorHeapType);
 }
 
-HRESULT DXLDevice::CreateRootSignature(uint32_t nodeMask, const void* blobWithRootSignature, SIZE_T blobLengthInBytes, REFIID riid, void** outRootSignature)
+HRESULT DXLDevice::CreateRootSignature(uint32_t nodeMask, const void* blobWithRootSignature, size_t blobLengthInBytes, REFIID riid, void** outRootSignature)
 {
     return ToNative()->CreateRootSignature(nodeMask, blobWithRootSignature, blobLengthInBytes, riid, outRootSignature);
+}
+
+HRESULT DXLDevice::CreateRootSignatureFromSubobjectInLibrary(uint32_t nodeMask, const void* libraryBlob, size_t blobLengthInBytes, const wchar_t* subobjectName, REFIID riid, void** rootSignature)
+{
+    return ToNative()->CreateRootSignatureFromSubobjectInLibrary(nodeMask, libraryBlob, blobLengthInBytes, subobjectName, riid, rootSignature);
 }
 
 HRESULT DXLDevice::CreateQueryHeap(const D3D12_QUERY_HEAP_DESC* desc, REFIID riid, void** outHeap)
@@ -893,6 +908,11 @@ void DXLDevice::CreateUnorderedAccessView(DXLResource resource, DXLResource coun
     ToNative()->CreateUnorderedAccessView(resource, counterResource, desc, destDescriptor);
 }
 
+void DXLDevice::CreateSamplerFeedbackUnorderedAccessView(DXLResource targetedResource, DXLResource feedbackResource, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor)
+{
+    ToNative()->CreateSamplerFeedbackUnorderedAccessView(targetedResource, feedbackResource, destDescriptor);
+}
+
 void DXLDevice::CreateRenderTargetView(DXLResource resource, const D3D12_RENDER_TARGET_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor)
 {
     ToNative()->CreateRenderTargetView(resource, desc, destDescriptor);
@@ -918,9 +938,9 @@ HRESULT DXLDevice::CreateHeap(const D3D12_HEAP_DESC* desc, REFIID riid, void** o
     return ToNative()->CreateHeap(desc, riid, outHeap);
 }
 
-HRESULT DXLDevice::OpenExistingHeapFromAddress(const void* address, REFIID riid, void** outHeap)
+HRESULT DXLDevice::OpenExistingHeapFromAddress1(const void* address, size_t size, REFIID riid, void** outHeap)
 {
-    return ToNative()->OpenExistingHeapFromAddress(address, riid, outHeap);
+    return ToNative()->OpenExistingHeapFromAddress1(address, size, riid, outHeap);
 }
 
 HRESULT DXLDevice::OpenExistingHeapFromFileMapping(HANDLE fileMapping, REFIID riid, void** outHeap)
@@ -993,6 +1013,11 @@ HRESULT DXLDevice::SetEventOnMultipleFenceCompletion(ID3D12Fence*const* fences, 
     return ToNative()->SetEventOnMultipleFenceCompletion(fences, fenceValues, numFences, flags, event);
 }
 
+void DXLDevice::GetRaytracingAccelerationStructurePrebuildInfo(const D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS* desc, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO* outInfo)
+{
+    ToNative()->GetRaytracingAccelerationStructurePrebuildInfo(desc, outInfo);
+}
+
 void DXLDevice::RemoveDevice()
 {
     ToNative()->RemoveDevice();
@@ -1008,11 +1033,17 @@ void DXLDevice::GetCopyableFootprints1(const D3D12_RESOURCE_DESC1* resourceDesc,
     ToNative()->GetCopyableFootprints1(resourceDesc, firstSubresource, numSubresources, baseOffset, layouts, numRows, rowSizeInBytes, totalBytes);
 }
 
-#if DXL_ENABLE_SET_STABLE_POWER_STATE()
+#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
 HRESULT DXLDevice::SetStablePowerState(bool enable)
 {
     return ToNative()->SetStablePowerState(enable);
 }
+
+HRESULT DXLDevice::SetBackgroundProcessingMode(D3D12_BACKGROUND_PROCESSING_MODE mode, D3D12_MEASUREMENTS_ACTION measurementsAction, HANDLE eventToSignalUponCompletion, BOOL* outFurtherMeasurementsDesired)
+{
+    return ToNative()->SetBackgroundProcessingMode(mode, measurementsAction, eventToSignalUponCompletion, outFurtherMeasurementsDesired);
+}
+
 #endif
 
 void DXLDevice::GetResourceTiling(DXLResource tiledResource, uint32_t* outNumTilesForEntireResource, D3D12_PACKED_MIP_INFO* outPackedMipDesc, D3D12_TILE_SHAPE* outStandardTileShapeForNonPackedMips, uint32_t* numSubresourceTilings, uint32_t firstSubresourceTilingToGet, D3D12_SUBRESOURCE_TILING* outSubresourceTilingsForNonPackedMips)

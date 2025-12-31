@@ -12,7 +12,7 @@
 #define DXL_ENABLE_DESCRIPTOR_TABLES() true
 #define DXL_ENABLE_CLEAR_UAV() true
 #define DXL_ENABLE_VIEW_INSTANCING() true
-#define DXL_ENABLE_SET_STABLE_POWER_STATE() true
+#define DXL_ENABLE_DEVELOPER_ONLY_FEATURES() true
 
 #define DXL_ENABLE_EXTENSIONS() true
 
@@ -527,11 +527,14 @@ public:
     HRESULT CreateGraphicsPipelineState(const D3D12_GRAPHICS_PIPELINE_STATE_DESC* desc, REFIID riid, void** outPipelineState);
     HRESULT CreateComputePipelineState(const D3D12_COMPUTE_PIPELINE_STATE_DESC* desc, REFIID riid, void** outOipelineState);
     HRESULT CreatePipelineState(const D3D12_PIPELINE_STATE_STREAM_DESC* desc, REFIID riid, void** outPipelineState);
+    HRESULT CreateStateObject(const D3D12_STATE_OBJECT_DESC* desc, REFIID riid, void** outStateObject);
+    HRESULT AddToStateObject(const D3D12_STATE_OBJECT_DESC* addition, DXLStateObject stateObjectToGrowFrom, REFIID riid, void** outNewStateObject);
 
     HRESULT CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_DESC* descriptorHeapDesc, REFIID riid, void** outHeap);
     uint32_t GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE descriptorHeapType);
 
-    HRESULT CreateRootSignature(uint32_t nodeMask, const void* blobWithRootSignature, SIZE_T blobLengthInBytes, REFIID riid, void** outRootSignature);
+    HRESULT CreateRootSignature(uint32_t nodeMask, const void* blobWithRootSignature, size_t blobLengthInBytes, REFIID riid, void** outRootSignature);
+    HRESULT CreateRootSignatureFromSubobjectInLibrary(uint32_t nodeMask, const void* libraryBlob, size_t blobLengthInBytes, const wchar_t* subobjectName, REFIID riid, void** rootSignature);
 
     HRESULT CreateQueryHeap(const D3D12_QUERY_HEAP_DESC* desc, REFIID riid, void** outHeap);
 
@@ -540,6 +543,7 @@ public:
     void CreateConstantBufferView(const D3D12_CONSTANT_BUFFER_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
     void CreateShaderResourceView(DXLResource resource, const D3D12_SHADER_RESOURCE_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
     void CreateUnorderedAccessView(DXLResource resource, DXLResource counterResource, const D3D12_UNORDERED_ACCESS_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
+    void CreateSamplerFeedbackUnorderedAccessView(DXLResource targetedResource, DXLResource feedbackResource, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
     void CreateRenderTargetView(DXLResource resource, const D3D12_RENDER_TARGET_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
     void CreateDepthStencilView(DXLResource resource, const D3D12_DEPTH_STENCIL_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
     void CreateSampler2(const D3D12_SAMPLER_DESC2* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
@@ -554,7 +558,7 @@ public:
     );
 
     HRESULT CreateHeap(const D3D12_HEAP_DESC* desc, REFIID riid, void** outHeap);
-    HRESULT OpenExistingHeapFromAddress(const void* address, REFIID riid, void** outHeap);
+    HRESULT OpenExistingHeapFromAddress1(const void* address, size_t size, REFIID riid, void** outHeap);
     HRESULT OpenExistingHeapFromFileMapping(HANDLE fileMapping, REFIID riid, void** outHeap);
 
     D3D12_HEAP_PROPERTIES GetCustomHeapProperties(uint32_t nodeMask, D3D12_HEAP_TYPE heapType);
@@ -628,11 +632,14 @@ public:
     HRESULT CreateFence(uint64_t initialValue, D3D12_FENCE_FLAGS flags, REFIID riid, void** outFence);
     HRESULT SetEventOnMultipleFenceCompletion(ID3D12Fence*const* fences, const uint64_t* fenceValues, uint32_t numFences, D3D12_MULTIPLE_FENCE_WAIT_FLAGS flags, HANDLE event);
 
+    void GetRaytracingAccelerationStructurePrebuildInfo(const D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS* desc, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO* outInfo);
+
     void RemoveDevice();
     HRESULT GetDeviceRemovedReason();
 
-#if DXL_ENABLE_SET_STABLE_POWER_STATE()
+#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
     HRESULT SetStablePowerState(bool enable);
+    HRESULT SetBackgroundProcessingMode(D3D12_BACKGROUND_PROCESSING_MODE mode, D3D12_MEASUREMENTS_ACTION measurementsAction, HANDLE eventToSignalUponCompletion, BOOL* outFurtherMeasurementsDesired);
 #endif
 };
 
