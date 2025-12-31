@@ -12,6 +12,7 @@
 #define DXL_ENABLE_DESCRIPTOR_TABLES() true
 #define DXL_ENABLE_CLEAR_UAV() true
 #define DXL_ENABLE_VIEW_INSTANCING() true
+#define DXL_ENABLE_SET_STABLE_POWER_STATE() true
 
 #define DXL_ENABLE_EXTENSIONS() true
 
@@ -475,6 +476,129 @@ public:
 
     HRESULT SetGlobalPriority(D3D12_COMMAND_QUEUE_GLOBAL_PRIORITY priority);
     HRESULT GetGlobalPriority(D3D12_COMMAND_QUEUE_GLOBAL_PRIORITY* outValue);
+};
+
+class DXLDevice : public DXLObject
+{
+
+public:
+
+    DXL_INTERFACE_BOILERPLATE(DXLDevice, ID3D12Device14);
+
+    uint32_t GetNodeCount();
+
+    uint32_t GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE descriptorHeapType);
+
+    HRESULT CreateCommandQueue(const D3D12_COMMAND_QUEUE_DESC* desc, REFIID riid, void** outCommandQueue);
+    HRESULT CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type, REFIID riid, void** outCommandAllocator);
+    HRESULT CreateCommandList(uint32_t nodeMask, D3D12_COMMAND_LIST_TYPE type, DXLCommandAllocator commandAllocator, DXLPipelineState initialState, REFIID riid, void** outCommandList);
+
+    HRESULT CreateGraphicsPipelineState(const D3D12_GRAPHICS_PIPELINE_STATE_DESC* desc, REFIID riid, void** outPipelineState);
+    HRESULT CreateComputePipelineState(const D3D12_COMPUTE_PIPELINE_STATE_DESC* desc, REFIID riid, void** outOipelineState);
+
+    HRESULT CheckFeatureSupport(D3D12_FEATURE feature, void* featureSupportData, uint32_t featureSupportDataSize);
+
+    HRESULT CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_DESC* descriptorHeapDesc, REFIID riid, void** outHeap);
+
+    HRESULT CreateRootSignature(uint32_t nodeMask, const void* blobWithRootSignature, SIZE_T blobLengthInBytes, REFIID riid, void** outRootSignature);
+
+    HRESULT CreateQueryHeap(const D3D12_QUERY_HEAP_DESC* desc, REFIID riid, void** outHeap);
+
+    HRESULT CreateCommandSignature(const D3D12_COMMAND_SIGNATURE_DESC* desc, DXLRootSignature rootSignature, REFIID riid, void** outCommandSignature);
+
+    void CreateConstantBufferView(const D3D12_CONSTANT_BUFFER_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
+    void CreateShaderResourceView(DXLResource resource, const D3D12_SHADER_RESOURCE_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
+    void CreateUnorderedAccessView(DXLResource resource, DXLResource counterResource, const D3D12_UNORDERED_ACCESS_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
+    void CreateRenderTargetView(DXLResource resource, const D3D12_RENDER_TARGET_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
+    void CreateDepthStencilView(DXLResource resource, const D3D12_DEPTH_STENCIL_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
+    void CreateSampler2(const D3D12_SAMPLER_DESC2* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
+
+    D3D12_RESOURCE_ALLOCATION_INFO GetResourceAllocationInfo3(
+        uint32_t visibleMask,
+        uint32_t numResourceDescs,
+        const D3D12_RESOURCE_DESC1* resourceDescs,
+        const uint32_t* numCastableFormats,
+        const DXGI_FORMAT*const* castableFormats,
+        D3D12_RESOURCE_ALLOCATION_INFO1* resourceAllocationInfo
+    );
+
+    HRESULT CreateHeap(const D3D12_HEAP_DESC* desc, REFIID riid, void** outHeap);
+
+    D3D12_HEAP_PROPERTIES GetCustomHeapProperties(uint32_t nodeMask, D3D12_HEAP_TYPE heapType);
+
+    HRESULT CreateCommittedResource3(
+        const D3D12_HEAP_PROPERTIES* heapProperties,
+        D3D12_HEAP_FLAGS heapFlags,
+        const D3D12_RESOURCE_DESC1* desc,
+        D3D12_BARRIER_LAYOUT initialLayout,
+        const D3D12_CLEAR_VALUE* optimizedClearValue,
+        ID3D12ProtectedResourceSession* protectedSession,
+        uint32_t numCastableFormats,
+        const DXGI_FORMAT* castableFormats,
+        REFIID riid,
+        void** outResource
+    );
+
+    HRESULT CreatePlacedResource2(
+        ID3D12Heap* heap,
+        uint64_t heapOffset,
+        const D3D12_RESOURCE_DESC1* desc,
+        D3D12_BARRIER_LAYOUT initialLayout,
+        const D3D12_CLEAR_VALUE* optimizedClearValue,
+        uint32_t numCastableFormats,
+        const DXGI_FORMAT* castableFormats,
+        REFIID riid,
+        void** outResource
+    );
+
+    HRESULT CreateReservedResource2(
+        const D3D12_RESOURCE_DESC* desc,
+        D3D12_BARRIER_LAYOUT initialLayout,
+        const D3D12_CLEAR_VALUE* optimizedClearValue,
+        ID3D12ProtectedResourceSession* protectedSession,
+        uint32_t numCastableFormats,
+        const DXGI_FORMAT* castableFormats,
+        REFIID riid,
+        void** outResource
+    );
+
+    HRESULT CreateSharedHandle(DXLDeviceChild object, const SECURITY_ATTRIBUTES* attributes, uint32_t access, const wchar_t* name, HANDLE* outHandle);
+    HRESULT OpenSharedHandle(HANDLE ntHandle, REFIID riid, void** outObj);
+    HRESULT OpenSharedHandleByName(const wchar_t* name, uint32_t access, HANDLE* outHandle);
+
+    HRESULT MakeResident(uint32_t numObjects, ID3D12Pageable*const* objects);
+    HRESULT Evict(uint32_t numObjects, ID3D12Pageable*const* objects);
+
+    HRESULT CreateFence(uint64_t initialValue, D3D12_FENCE_FLAGS flags, REFIID riid, void** outFence);
+
+    HRESULT GetDeviceRemovedReason();
+
+    void GetCopyableFootprints1(
+        const D3D12_RESOURCE_DESC1* resourceDesc,
+        uint32_t firstSubresource,
+        uint32_t numSubresources,
+        uint64_t baseOffset,
+        D3D12_PLACED_SUBRESOURCE_FOOTPRINT* layouts,
+        uint32_t* numRows,
+        uint64_t* rowSizeInBytes,
+        uint64_t* totalBytes
+    );
+
+#if DXL_ENABLE_SET_STABLE_POWER_STATE()
+    HRESULT SetStablePowerState(bool enable);
+#endif
+
+    void GetResourceTiling(
+        DXLResource tiledResource,
+        uint32_t* outNumTilesForEntireResource,
+        D3D12_PACKED_MIP_INFO* outPackedMipDesc,
+        D3D12_TILE_SHAPE* outStandardTileShapeForNonPackedMips,
+        uint32_t* numSubresourceTilings,
+        uint32_t firstSubresourceTilingToGet,
+        D3D12_SUBRESOURCE_TILING* outSubresourceTilingsForNonPackedMips
+    );
+
+    LUID GetAdapterLuid();
 };
 
 } // namespace dxl
