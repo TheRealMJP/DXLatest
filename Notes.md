@@ -158,6 +158,8 @@ What To Deprecate
 * Legacy barriers
 * PSO libraries
 * Stream Out
+* Protected Sessions
+* Meta commands
 
 ### Maybes
 
@@ -202,6 +204,7 @@ What To Deprecate
 * View instancing
     * Really not that useful
     * API surface is modest
+
 
 Helper Functions and Extensions
 ===============================

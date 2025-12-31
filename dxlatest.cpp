@@ -91,11 +91,6 @@ DXL_HEAP_DESC DXLHeap::GetDesc() const
     return ToNative()->GetDesc();
 }
 
-HRESULT DXLHeap::GetProtectedResourceSession(REFIID riid, void** outProtectedSession) const
-{
-    return ToNative()->GetProtectedResourceSession(riid, outProtectedSession);
-}
-
 // == DXLResource ======================================================
 
 HRESULT DXLResource::Map(uint32_t subresource, const D3D12_RANGE* readRange, void** outData)
@@ -151,11 +146,6 @@ HRESULT DXLResource::GetHeapProperties(DXL_HEAP_PROPERTIES* outHeapProperties, D
     HRESULT hr = ToNative()->GetHeapProperties(&d3d12HeapProperties, outHeapFlags);
     *outHeapProperties = d3d12HeapProperties;
     return hr;
-}
-
-HRESULT DXLResource::GetProtectedResourceSession(REFIID riid, void** protectedSession) const
-{
-    return ToNative()->GetProtectedResourceSession(riid, protectedSession);
 }
 
 // == DXLCommandAllocator ======================================================
@@ -255,6 +245,16 @@ void DXLCommandList::Dispatch(uint32_t threadGroupCountX, uint32_t threadGroupCo
     ToNative()->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
 }
 
+void DXLCommandList::DispatchRays(const D3D12_DISPATCH_RAYS_DESC* desc)
+{
+    ToNative()->DispatchRays(desc);
+}
+
+void DXLCommandList::DispatchMesh(uint32_t threadGroupCountX, uint32_t threadGroupCountY, uint32_t threadGroupCountZ)
+{
+    ToNative()->DispatchMesh(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
+}
+
 void DXLCommandList::CopyBufferRegion(DXLResource dstBuffer, uint64_t dstOffset, DXLResource srcBuffer, uint64_t srcOffset, uint64_t numBytes)
 {
     ToNative()->CopyBufferRegion(dstBuffer, dstOffset, srcBuffer, srcOffset, numBytes);
@@ -275,13 +275,39 @@ void DXLCommandList::CopyTiles(DXLResource tiledResource, const D3D12_TILED_RESO
     ToNative()->CopyTiles(tiledResource, tileRegionStartCoordinate, tileRegionSize, buffer, bufferStartOffsetInBytes, flags);
 }
 
+void DXLCommandList::Barrier(uint32_t numBarrierGroups, const D3D12_BARRIER_GROUP* barrierGroups)
+{
+    ToNative()->Barrier(numBarrierGroups, barrierGroups);
+}
+
 void DXLCommandList::ResolveSubresource(DXLResource dstResource, uint32_t dstSubresource, DXLResource srcResource, uint32_t srcSubresource, DXGI_FORMAT format)
 {
     ToNative()->ResolveSubresource(dstResource, dstSubresource, srcResource, srcSubresource, format);
 }
+
 void DXLCommandList::IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY primitiveTopology)
 {
     ToNative()->IASetPrimitiveTopology(primitiveTopology);
+}
+
+void DXLCommandList::IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view)
+{
+    ToNative()->IASetIndexBuffer(view);
+}
+
+#if DXL_ENABLE_EXTENSIONS()
+
+void DXLCommandList::IASetIndexBuffer(DXL_INDEX_BUFFER_VIEW view)
+{
+    D3D12_INDEX_BUFFER_VIEW d3d12View = view;
+    ToNative()->IASetIndexBuffer(&d3d12View);
+}
+
+#endif
+
+void DXLCommandList::IASetIndexBufferStripCutValue(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE ibStripCutValue)
+{
+    ToNative()->IASetIndexBufferStripCutValue(ibStripCutValue);
 }
 
 void DXLCommandList::RSSetViewports(uint32_t numViewports, const D3D12_VIEWPORT* viewports)
@@ -294,6 +320,11 @@ void DXLCommandList::RSSetScissorRects(uint32_t numRects, const D3D12_RECT* rect
     ToNative()->RSSetScissorRects(numRects, rects);
 }
 
+void DXLCommandList::RSSetDepthBias(float depthBias, float depthBiasClamp, float slopeScaledDepthBias)
+{
+    ToNative()->RSSetDepthBias(depthBias, depthBiasClamp, slopeScaledDepthBias);
+}
+
 void DXLCommandList::OMSetBlendFactor(const float blendFactor[4])
 {
     ToNative()->OMSetBlendFactor(blendFactor);
@@ -304,9 +335,19 @@ void DXLCommandList::OMSetStencilRef(uint32_t stencilRef)
     ToNative()->OMSetStencilRef(stencilRef);
 }
 
+void DXLCommandList::OMSetFrontAndBackStencilRef(uint32_t frontStencilRef, uint32_t backStencilRef)
+{
+    ToNative()->OMSetFrontAndBackStencilRef(frontStencilRef, backStencilRef);
+}
+
 void DXLCommandList::SetPipelineState(DXLPipelineState pipelineState)
 {
     ToNative()->SetPipelineState(pipelineState);
+}
+
+void DXLCommandList::SetPipelineState1(DXLStateObject stateObject)
+{
+    ToNative()->SetPipelineState1(stateObject);
 }
 
 void DXLCommandList::SetDescriptorHeaps(uint32_t numDescriptorHeaps, ID3D12DescriptorHeap*const* descriptorHeaps)
@@ -398,21 +439,6 @@ void DXLCommandList::SetGraphicsRootUnorderedAccessView(uint32_t rootParameterIn
     ToNative()->SetGraphicsRootUnorderedAccessView(rootParameterIndex, bufferLocation);
 }
 
-void DXLCommandList::IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view)
-{
-    ToNative()->IASetIndexBuffer(view);
-}
-
-#if DXL_ENABLE_EXTENSIONS()
-
-void DXLCommandList::IASetIndexBuffer(DXL_INDEX_BUFFER_VIEW view)
-{
-    D3D12_INDEX_BUFFER_VIEW d3d12View = view;
-    ToNative()->IASetIndexBuffer(&d3d12View);
-}
-
-#endif
-
 void DXLCommandList::OMSetRenderTargets(uint32_t numRenderTargetDescriptors, const D3D12_CPU_DESCRIPTOR_HANDLE* renderTargetDescriptors, bool rtIsSingleHandleToDescriptorRange, const D3D12_CPU_DESCRIPTOR_HANDLE* depthStencilDescriptor)
 {
     ToNative()->OMSetRenderTargets(numRenderTargetDescriptors, renderTargetDescriptors, rtIsSingleHandleToDescriptorRange, depthStencilDescriptor);
@@ -433,14 +459,24 @@ void DXLCommandList::DiscardResource(DXLResource resource, const D3D12_DISCARD_R
     ToNative()->DiscardResource(resource, region);
 }
 
+void DXLCommandList::BeginRenderPass(uint32_t numRenderTargets, const D3D12_RENDER_PASS_RENDER_TARGET_DESC* renderTargets, const D3D12_RENDER_PASS_DEPTH_STENCIL_DESC* depthStencil, D3D12_RENDER_PASS_FLAGS flags)
+{
+    ToNative()->BeginRenderPass(numRenderTargets, renderTargets, depthStencil, flags);
+}
+
+void DXLCommandList::EndRenderPass()
+{
+    ToNative()->EndRenderPass();
+}
+
 #if DXL_ENABLE_CLEAR_UAV()
 
-void DXLCommandList::ClearUnorderedAccessViewUint(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const UINT values[4], uint32_t numRects, const D3D12_RECT* rects)
+void DXLCommandList::ClearUnorderedAccessViewUint(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const uint32_t values[4], uint32_t numRects, const D3D12_RECT* rects)
 {
     ToNative()->ClearUnorderedAccessViewUint(viewGPUHandleInCurrentHeap, viewCPUHandle, resource, values, numRects, rects);
 }
 
-void DXLCommandList::ClearUnorderedAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const FLOAT values[4], uint32_t numRects, const D3D12_RECT* rects)
+void DXLCommandList::ClearUnorderedAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const float values[4], uint32_t numRects, const D3D12_RECT* rects)
 {
     ToNative()->ClearUnorderedAccessViewFloat(viewGPUHandleInCurrentHeap, viewCPUHandle, resource, values, numRects, rects);
 }
@@ -504,5 +540,36 @@ void DXLCommandList::SetViewInstanceMask(uint32_t mask)
     ToNative()->SetViewInstanceMask(mask);
 }
 #endif
+
+void DXLCommandList::WriteBufferImmediate(uint32_t count, const D3D12_WRITEBUFFERIMMEDIATE_PARAMETER* params, const D3D12_WRITEBUFFERIMMEDIATE_MODE* modes)
+{
+    ToNative()->WriteBufferImmediate(count, params, modes);
+}
+
+void DXLCommandList::BuildRaytracingAccelerationStructure(const D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC* desc, uint32_t numPostbuildInfoDescs, const D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC* postbuildInfoDescs)
+{
+    ToNative()->BuildRaytracingAccelerationStructure(desc, numPostbuildInfoDescs, postbuildInfoDescs);
+}
+
+void DXLCommandList::EmitRaytracingAccelerationStructurePostbuildInfo(const D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC* desc, uint32_t numSourceAccelerationStructures, const D3D12_GPU_VIRTUAL_ADDRESS* sourceAccelerationStructureData)
+{
+    ToNative()->EmitRaytracingAccelerationStructurePostbuildInfo(desc, numSourceAccelerationStructures, sourceAccelerationStructureData);
+}
+
+void DXLCommandList::CopyRaytracingAccelerationStructure(D3D12_GPU_VIRTUAL_ADDRESS destAccelerationStructureData, D3D12_GPU_VIRTUAL_ADDRESS sourceAccelerationStructureData, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE mode)
+{
+    ToNative()->CopyRaytracingAccelerationStructure(destAccelerationStructureData, sourceAccelerationStructureData, mode);
+}
+
+void DXLCommandList::RSSetShadingRate(D3D12_SHADING_RATE baseShadingRate, const D3D12_SHADING_RATE_COMBINER* combiners)
+{
+    ToNative()->RSSetShadingRate(baseShadingRate, combiners);
+}
+
+void DXLCommandList::RSSetShadingRateImage(DXLResource shadingRateImage)
+{
+    ToNative()->RSSetShadingRateImage(shadingRateImage);
+}
+
 
 } // namespace dxl
