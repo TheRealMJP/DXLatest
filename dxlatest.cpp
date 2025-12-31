@@ -255,6 +255,11 @@ void DXLCommandList::DispatchMesh(uint32_t threadGroupCountX, uint32_t threadGro
     ToNative()->DispatchMesh(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
 }
 
+void DXLCommandList::DispatchGraph(const D3D12_DISPATCH_GRAPH_DESC* desc)
+{
+    ToNative()->DispatchGraph(desc);
+}
+
 void DXLCommandList::CopyBufferRegion(DXLResource dstBuffer, uint64_t dstOffset, DXLResource srcBuffer, uint64_t srcOffset, uint64_t numBytes)
 {
     ToNative()->CopyBufferRegion(dstBuffer, dstOffset, srcBuffer, srcOffset, numBytes);
@@ -325,6 +330,16 @@ void DXLCommandList::RSSetDepthBias(float depthBias, float depthBiasClamp, float
     ToNative()->RSSetDepthBias(depthBias, depthBiasClamp, slopeScaledDepthBias);
 }
 
+void DXLCommandList::RSSetShadingRate(D3D12_SHADING_RATE baseShadingRate, const D3D12_SHADING_RATE_COMBINER* combiners)
+{
+    ToNative()->RSSetShadingRate(baseShadingRate, combiners);
+}
+
+void DXLCommandList::RSSetShadingRateImage(DXLResource shadingRateImage)
+{
+    ToNative()->RSSetShadingRateImage(shadingRateImage);
+}
+
 void DXLCommandList::OMSetBlendFactor(const float blendFactor[4])
 {
     ToNative()->OMSetBlendFactor(blendFactor);
@@ -348,6 +363,11 @@ void DXLCommandList::SetPipelineState(DXLPipelineState pipelineState)
 void DXLCommandList::SetPipelineState1(DXLStateObject stateObject)
 {
     ToNative()->SetPipelineState1(stateObject);
+}
+
+void DXLCommandList::SetProgram(const D3D12_SET_PROGRAM_DESC* desc)
+{
+    ToNative()->SetProgram(desc);
 }
 
 void DXLCommandList::SetDescriptorHeaps(uint32_t numDescriptorHeaps, ID3D12DescriptorHeap*const* descriptorHeaps)
@@ -561,15 +581,66 @@ void DXLCommandList::CopyRaytracingAccelerationStructure(D3D12_GPU_VIRTUAL_ADDRE
     ToNative()->CopyRaytracingAccelerationStructure(destAccelerationStructureData, sourceAccelerationStructureData, mode);
 }
 
-void DXLCommandList::RSSetShadingRate(D3D12_SHADING_RATE baseShadingRate, const D3D12_SHADING_RATE_COMBINER* combiners)
+// == DXLCommandQueue ======================================================
+
+void DXLCommandQueue::UpdateTileMappings(DXLResource resource, uint32_t numResourceRegions, const D3D12_TILED_RESOURCE_COORDINATE* resourceRegionStartCoordinates, const D3D12_TILE_REGION_SIZE* resourceRegionSizes, ID3D12Heap* pHeap, uint32_t numRanges, const D3D12_TILE_RANGE_FLAGS* rangeFlags, const uint32_t* heapRangeStartOffsets, const uint32_t* rangeTileCounts, D3D12_TILE_MAPPING_FLAGS flags)
 {
-    ToNative()->RSSetShadingRate(baseShadingRate, combiners);
+    ToNative()->UpdateTileMappings(resource, numResourceRegions, resourceRegionStartCoordinates, resourceRegionSizes, pHeap, numRanges, rangeFlags, heapRangeStartOffsets, rangeTileCounts, flags);
 }
 
-void DXLCommandList::RSSetShadingRateImage(DXLResource shadingRateImage)
+void DXLCommandQueue::CopyTileMappings(DXLResource dstResource, const D3D12_TILED_RESOURCE_COORDINATE* dstRegionStartCoordinate, DXLResource srcResource, const D3D12_TILED_RESOURCE_COORDINATE* srcRegionStartCoordinate, const D3D12_TILE_REGION_SIZE* regionSize, D3D12_TILE_MAPPING_FLAGS flags)
 {
-    ToNative()->RSSetShadingRateImage(shadingRateImage);
+    ToNative()->CopyTileMappings(dstResource, dstRegionStartCoordinate, srcResource, srcRegionStartCoordinate, regionSize, flags);
 }
 
+void DXLCommandQueue::ExecuteCommandLists(uint32_t numCommandLists, ID3D12CommandList*const* commandLists)
+{
+    ToNative()->ExecuteCommandLists(numCommandLists, commandLists);
+}
+
+HRESULT DXLCommandQueue::Signal(DXLFence fence, uint64_t value)
+{
+    return ToNative()->Signal(fence, value);
+}
+
+HRESULT DXLCommandQueue::Wait(DXLFence fence, uint64_t value)
+{
+    return ToNative()->Wait(fence, value);
+}
+
+HRESULT DXLCommandQueue::GetTimestampFrequency(uint64_t* outFrequency) const
+{
+    return ToNative()->GetTimestampFrequency(outFrequency);
+}
+
+HRESULT DXLCommandQueue::GetClockCalibration(uint64_t* outGpuTimestamp, uint64_t* outCpuTimestamp) const
+{
+    return ToNative()->GetClockCalibration(outGpuTimestamp, outCpuTimestamp);
+}
+
+D3D12_COMMAND_QUEUE_DESC DXLCommandQueue::GetDesc() const
+{
+    return ToNative()->GetDesc();
+}
+
+HRESULT DXLCommandQueue::SetProcessPriority(D3D12_COMMAND_QUEUE_PROCESS_PRIORITY priority)
+{
+    return ToNative()->SetProcessPriority(priority);
+}
+
+HRESULT DXLCommandQueue::GetProcessPriority(D3D12_COMMAND_QUEUE_PROCESS_PRIORITY* outValue)
+{
+    return ToNative()->GetProcessPriority(outValue);
+}
+
+HRESULT DXLCommandQueue::SetGlobalPriority(D3D12_COMMAND_QUEUE_GLOBAL_PRIORITY priority)
+{
+    return ToNative()->SetGlobalPriority(priority);
+}
+
+HRESULT DXLCommandQueue::GetGlobalPriority(D3D12_COMMAND_QUEUE_GLOBAL_PRIORITY* outValue)
+{
+    return ToNative()->GetGlobalPriority(outValue);
+}
 
 } // namespace dxl

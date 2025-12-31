@@ -279,6 +279,7 @@ public:
     void Dispatch(uint32_t threadGroupCountX, uint32_t threadGroupCountY, uint32_t threadGroupCountZ);
     void DispatchRays(const D3D12_DISPATCH_RAYS_DESC* desc);
     void DispatchMesh(uint32_t threadGroupCountX, uint32_t threadGroupCountY, uint32_t threadGroupCountZ);
+    void DispatchGraph(const D3D12_DISPATCH_GRAPH_DESC* desc);
 
     void CopyBufferRegion(DXLResource dstBuffer, uint64_t dstOffset, DXLResource srcBuffer, uint64_t srcOffset, uint64_t numBytes);
     void CopyTextureRegion(const D3D12_TEXTURE_COPY_LOCATION* dst, uint32_t dstX, uint32_t dstY, uint32_t dstZ, const D3D12_TEXTURE_COPY_LOCATION* src, const D3D12_BOX* srcBox);
@@ -300,12 +301,16 @@ public:
     void RSSetScissorRects(uint32_t numRects, const D3D12_RECT* rects);
     void RSSetDepthBias(float depthBias, float depthBiasClamp, float slopeScaledDepthBias);
 
+    void RSSetShadingRate(D3D12_SHADING_RATE baseShadingRate, const D3D12_SHADING_RATE_COMBINER* combiners);
+    void RSSetShadingRateImage(DXLResource shadingRateImage);
+
     void OMSetBlendFactor(const float blendFactor[4]);
     void OMSetStencilRef(uint32_t stencilRef);
     void OMSetFrontAndBackStencilRef(uint32_t frontStencilRef, uint32_t backStencilRef);
 
     void SetPipelineState(DXLPipelineState pipelineState);
     void SetPipelineState1(DXLStateObject stateObject);
+    void SetProgram(const D3D12_SET_PROGRAM_DESC* desc);
 
     void SetDescriptorHeaps(uint32_t numDescriptorHeaps, ID3D12DescriptorHeap*const* descriptorHeaps);
 #if DXL_ENABLE_EXTENSIONS()
@@ -399,9 +404,6 @@ public:
     void BuildRaytracingAccelerationStructure(const D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC* desc, uint32_t numPostbuildInfoDescs, const D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC* postbuildInfoDescs);
     void EmitRaytracingAccelerationStructurePostbuildInfo(const D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC* desc, uint32_t numSourceAccelerationStructures, const D3D12_GPU_VIRTUAL_ADDRESS* sourceAccelerationStructureData);
     void CopyRaytracingAccelerationStructure(D3D12_GPU_VIRTUAL_ADDRESS destAccelerationStructureData, D3D12_GPU_VIRTUAL_ADDRESS sourceAccelerationStructureData, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE mode);
-
-    void RSSetShadingRate(D3D12_SHADING_RATE baseShadingRate, const D3D12_SHADING_RATE_COMBINER* combiners);
-    void RSSetShadingRateImage(DXLResource shadingRateImage);
 };
 
 class DXLCommandQueue : DXLPageable
@@ -442,6 +444,12 @@ public:
     HRESULT GetClockCalibration(uint64_t* outGpuTimestamp, uint64_t* outCpuTimestamp) const;
 
     D3D12_COMMAND_QUEUE_DESC GetDesc() const;
+
+    HRESULT SetProcessPriority(D3D12_COMMAND_QUEUE_PROCESS_PRIORITY priority);
+    HRESULT GetProcessPriority(D3D12_COMMAND_QUEUE_PROCESS_PRIORITY* outValue);
+
+    HRESULT SetGlobalPriority(D3D12_COMMAND_QUEUE_GLOBAL_PRIORITY priority);
+    HRESULT GetGlobalPriority(D3D12_COMMAND_QUEUE_GLOBAL_PRIORITY* outValue);
 };
 
 } // namespace dxl
