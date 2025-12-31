@@ -160,6 +160,7 @@ What To Deprecate
 * Stream Out
 * Protected Sessions
 * Meta commands
+* Lifetime trackers
 
 ### Maybes
 
@@ -204,6 +205,9 @@ What To Deprecate
 * View instancing
     * Really not that useful
     * API surface is modest
+
+* Legacy PSO creation methods/structs
+    * I think this is doable, just need to sketch out how the new stuff should work with helper extensions
 
 
 Helper Functions and Extensions

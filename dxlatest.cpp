@@ -236,6 +236,7 @@ uint64_t DXLStateObjectProperties::GetShaderStackSize(const wchar_t* exportName)
 }
 
 #if DXL_ENABLE_EXTENSIONS()
+
 void* DXLStateObjectProperties::GetShaderIdentifier(const char* exportName)
 {
     return ToNative()->GetShaderIdentifier(WideStringConverter(exportName).wideString);
@@ -251,7 +252,30 @@ D3D12_PROGRAM_IDENTIFIER DXLStateObjectProperties::GetProgramIdentifier(const ch
     return ToNative()->GetProgramIdentifier(WideStringConverter(programName).wideString);
 }
 
-#endif
+HRESULT DXLStateObjectProperties::GetGlobalRootSignatureForProgram(const wchar_t* programName, REFIID riid, void** outRootSignature)
+{
+    return ToNative()->GetGlobalRootSignatureForProgram(programName, riid, outRootSignature);
+}
+HRESULT DXLStateObjectProperties::GetGlobalRootSignatureForShader(const wchar_t* exportName, REFIID riid, void** outRootSignature)
+{
+    return ToNative()->GetGlobalRootSignatureForShader(exportName, riid, outRootSignature);
+}
+
+DXLRootSignature DXLStateObjectProperties::GetGlobalRootSignatureForProgram(const char* programName)
+{
+    ID3D12RootSignature* rootSig = nullptr;
+    ToNative()->GetGlobalRootSignatureForProgram(WideStringConverter(programName).wideString, IID_PPV_ARGS(&rootSig));
+    return DXLRootSignature(rootSig);
+}
+
+DXLRootSignature DXLStateObjectProperties::GetGlobalRootSignatureForShader(const char* exportName)
+{
+    ID3D12RootSignature* rootSig = nullptr;
+    ToNative()->GetGlobalRootSignatureForShader(WideStringConverter(exportName).wideString, IID_PPV_ARGS(&rootSig));
+    return DXLRootSignature(rootSig);
+}
+
+#endif  // DXL_ENABLE_EXTENSIONS()
 
 uint64_t DXLStateObjectProperties::GetPipelineStackSize()
 {
@@ -261,6 +285,73 @@ uint64_t DXLStateObjectProperties::GetPipelineStackSize()
 void DXLStateObjectProperties::SetPipelineStackSize(uint64_t pipelineStackSizeInBytes)
 {
     return ToNative()->SetPipelineStackSize(pipelineStackSizeInBytes);
+}
+
+// == DXLWorkGraphProperties =====================================================
+
+uint32_t DXLWorkGraphProperties::GetNumWorkGraphs()
+{
+    return ToNative()->GetNumWorkGraphs();
+}
+
+const wchar_t* DXLWorkGraphProperties::GetProgramName(uint32_t workGraphIndex)
+{
+    return ToNative()->GetProgramName(workGraphIndex);
+}
+
+uint32_t DXLWorkGraphProperties::GetWorkGraphIndex(const wchar_t* programName)
+{
+    return ToNative()->GetWorkGraphIndex(programName);
+}
+
+uint32_t DXLWorkGraphProperties::GetNumNodes(uint32_t workGraphIndex)
+{
+    return ToNative()->GetNumNodes(workGraphIndex);
+}
+
+D3D12_NODE_ID DXLWorkGraphProperties::GetNodeID(uint32_t workGraphIndex, uint32_t nodeIndex)
+{
+    return ToNative()->GetNodeID(workGraphIndex, nodeIndex);
+}
+
+uint32_t DXLWorkGraphProperties::GetNodeIndex(uint32_t workGraphIndex, D3D12_NODE_ID nodeID)
+{
+    return ToNative()->GetNodeIndex(workGraphIndex, nodeID);
+}
+
+uint32_t DXLWorkGraphProperties::GetNodeLocalRootArgumentsTableIndex(uint32_t workGraphIndex, uint32_t nodeIndex)
+{
+    return ToNative()->GetNodeLocalRootArgumentsTableIndex(workGraphIndex, nodeIndex);
+}
+
+uint32_t DXLWorkGraphProperties::GetNumEntrypoints(uint32_t workGraphIndex)
+{
+    return ToNative()->GetNumEntrypoints(workGraphIndex);
+}
+
+D3D12_NODE_ID DXLWorkGraphProperties::GetEntrypointID(uint32_t workGraphIndex, uint32_t entrypointIndex)
+{
+    return ToNative()->GetEntrypointID(workGraphIndex, entrypointIndex);
+}
+
+uint32_t DXLWorkGraphProperties::GetEntrypointIndex(uint32_t workGraphIndex, D3D12_NODE_ID nodeID)
+{
+    return ToNative()->GetEntrypointIndex(workGraphIndex, nodeID);
+}
+
+uint32_t DXLWorkGraphProperties::GetEntrypointRecordSizeInBytes(uint32_t workGraphIndex, uint32_t entrypointIndex)
+{
+    return ToNative()->GetEntrypointRecordSizeInBytes(workGraphIndex, entrypointIndex);
+}
+
+void DXLWorkGraphProperties::GetWorkGraphMemoryRequirements(uint32_t workGraphIndex, D3D12_WORK_GRAPH_MEMORY_REQUIREMENTS* outWorkGraphMemoryRequirements)
+{
+    ToNative()->GetWorkGraphMemoryRequirements(workGraphIndex, outWorkGraphMemoryRequirements);
+}
+
+uint32_t DXLWorkGraphProperties::GetEntrypointRecordAlignmentInBytes(uint32_t workGraphIndex, uint32_t entrypointIndex)
+{
+    return ToNative()->GetEntrypointRecordAlignmentInBytes(workGraphIndex, entrypointIndex);
 }
 
 // == DXLDescriptorHeap =====================================================

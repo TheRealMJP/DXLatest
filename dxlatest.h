@@ -242,20 +242,50 @@ class DXLStateObjectProperties : public DXLBase
 
 public:
 
+    DXL_INTERFACE_BOILERPLATE(DXLStateObjectProperties, ID3D12StateObjectProperties2);
+
     void* GetShaderIdentifier(const wchar_t* exportName);
     uint64_t GetShaderStackSize(const wchar_t* exportName);
     D3D12_PROGRAM_IDENTIFIER GetProgramIdentifier(const wchar_t* programName);
+    HRESULT GetGlobalRootSignatureForProgram(const wchar_t* programName, REFIID riid, void** outRootSignature);
+    HRESULT GetGlobalRootSignatureForShader(const wchar_t* exportName, REFIID riid, void** outRootSignature);
 
 #if DXL_ENABLE_EXTENSIONS()
     void* GetShaderIdentifier(const char* exportName);
     uint64_t GetShaderStackSize(const char* exportName);
     D3D12_PROGRAM_IDENTIFIER GetProgramIdentifier(const char* programName);
+    DXLRootSignature GetGlobalRootSignatureForProgram(const char* programName);
+    DXLRootSignature GetGlobalRootSignatureForShader(const char* exportName);
 #endif
 
     uint64_t GetPipelineStackSize();
     void SetPipelineStackSize(uint64_t pipelineStackSizeInBytes);
+};
 
-    DXL_INTERFACE_BOILERPLATE(DXLStateObjectProperties, ID3D12StateObjectProperties1);
+class DXLWorkGraphProperties : public DXLBase
+{
+
+public:
+
+    DXL_INTERFACE_BOILERPLATE(DXLWorkGraphProperties, ID3D12WorkGraphProperties);
+
+    uint32_t GetNumWorkGraphs();
+    const wchar_t* GetProgramName(uint32_t workGraphIndex);
+    uint32_t GetWorkGraphIndex(const wchar_t* programName);
+
+    uint32_t GetNumNodes(uint32_t workGraphIndex);
+    D3D12_NODE_ID GetNodeID(uint32_t workGraphIndex, uint32_t nodeIndex);
+    uint32_t GetNodeIndex(uint32_t workGraphIndex, D3D12_NODE_ID nodeID);
+    uint32_t GetNodeLocalRootArgumentsTableIndex(uint32_t workGraphIndex, uint32_t nodeIndex);
+
+    uint32_t GetNumEntrypoints(uint32_t workGraphIndex);
+    D3D12_NODE_ID GetEntrypointID(uint32_t workGraphIndex, uint32_t entrypointIndex);
+    uint32_t GetEntrypointIndex(uint32_t workGraphIndex, D3D12_NODE_ID nodeID);
+    uint32_t GetEntrypointRecordSizeInBytes(uint32_t workGraphIndex, uint32_t entrypointIndex);
+
+    void GetWorkGraphMemoryRequirements(uint32_t workGraphIndex, D3D12_WORK_GRAPH_MEMORY_REQUIREMENTS* outWorkGraphMemoryRequirements);
+
+    uint32_t GetEntrypointRecordAlignmentInBytes(uint32_t workGraphIndex, uint32_t entrypointIndex);
 };
 
 class DXLDescriptorHeap : public DXLPageable
