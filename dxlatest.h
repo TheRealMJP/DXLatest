@@ -178,8 +178,10 @@ public:
     HRESULT Map(uint32_t subresource, const D3D12_RANGE* readRange, void** outData);
     void Unmap(uint32_t subresource, const D3D12_RANGE* writtenRange);
 
+#if DXL_ENABLE_EXTENSIONS()
     void* Map(uint32_t mipLevel, uint32_t arrayIndex = 0, uint32_t planeIndex = 0);
     void Unmap(uint32_t mipLevel, uint32_t arrayIndex = 0, uint32_t planeIndex = 0);
+#endif
 
     DXL_RESOURCE_DESC GetDesc() const;
 
@@ -221,8 +223,10 @@ public:
 
     DXL_INTERFACE_BOILERPLATE(DXLPipelineState, ID3D12PipelineState1);
 
-    DXLRootSignature GetRootSignature() const;
     HRESULT GetRootSignature(REFIID riid, void** outRootSignature) const;
+#if DXL_ENABLE_EXTENSIONS()
+    DXLRootSignature GetRootSignature() const;
+#endif
 };
 
 class DXLStateObject : public DXLPageable
@@ -230,6 +234,27 @@ class DXLStateObject : public DXLPageable
 public:
 
     DXL_INTERFACE_BOILERPLATE(DXLStateObject, ID3D12StateObject);
+};
+
+class DXLStateObjectProperties : public DXLBase
+{
+
+public:
+
+    void* GetShaderIdentifier(const wchar_t* exportName);
+    uint64_t GetShaderStackSize(const wchar_t* exportName);
+    D3D12_PROGRAM_IDENTIFIER GetProgramIdentifier(const wchar_t* programName);
+
+#if DXL_ENABLE_EXTENSIONS()
+    void* GetShaderIdentifier(const char* exportName);
+    uint64_t GetShaderStackSize(const char* exportName);
+    D3D12_PROGRAM_IDENTIFIER GetProgramIdentifier(const char* programName);
+#endif
+
+    uint64_t GetPipelineStackSize();
+    void SetPipelineStackSize(uint64_t pipelineStackSizeInBytes);
+
+    DXL_INTERFACE_BOILERPLATE(DXLStateObjectProperties, ID3D12StateObjectProperties1);
 };
 
 class DXLDescriptorHeap : public DXLPageable

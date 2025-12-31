@@ -2,9 +2,6 @@
 
 #include "AgilitySDK/include/d3dx12/d3dx12.h"
 
-// #define NOMINMAX
-// #include <windows.h>
-
 #ifdef _MSC_VER
 #pragma comment(lib, "D3D12.lib")
 #endif
@@ -15,6 +12,42 @@ namespace dxl
 static_assert(sizeof(DXL_HEAP_PROPERTIES) == sizeof(D3D12_HEAP_PROPERTIES));
 static_assert(sizeof(DXL_HEAP_DESC) == sizeof(D3D12_HEAP_DESC));
 static_assert(sizeof(DXL_RESOURCE_DESC) == sizeof(D3D12_RESOURCE_DESC1));
+
+struct WideStringConverter
+{
+    wchar_t* wideString = nullptr;
+    wchar_t fixedStorage[512] = { };
+    wchar_t* allocatedString = nullptr;
+
+    WideStringConverter(const char* str)
+    {
+        if (str != nullptr)
+        {
+            wideString = fixedStorage;
+
+            if (str[0] != 0)
+            {
+                const int32_t numChars = MultiByteToWideChar(CP_UTF8, 0, str, -1, nullptr, 0);
+                if (numChars > (sizeof(fixedStorage) / sizeof(wchar_t)))
+                {
+                    allocatedString = new wchar_t[numChars];
+                    wideString = allocatedString;
+                }
+
+                MultiByteToWideChar(CP_UTF8, 0, str, -1, wideString, numChars);
+            }
+        }
+    }
+
+    ~WideStringConverter()
+    {
+        if (allocatedString)
+        {
+            delete[] allocatedString;
+            allocatedString = nullptr;
+        }
+    }
+};
 
 // == DXLBase ======================================================
 
@@ -59,16 +92,7 @@ HRESULT DXLObject::SetName(const wchar_t* name)
 
 HRESULT DXLObject::SetName(const char* name)
 {
-    const int32_t numChars = MultiByteToWideChar(CP_UTF8, 0, name, -1, nullptr, 0);
-    if (numChars <= 0)
-        return E_FAIL;
-
-    wchar_t* wideChars = new wchar_t[numChars];
-    MultiByteToWideChar(CP_UTF8, 0, name, -1, wideChars, numChars);
-    HRESULT hr = ToNative()->SetName(wideChars);
-    delete[] wideChars;
-
-    return hr;
+    return ToNative()->SetName(WideStringConverter(name).wideString);
 }
 
 #endif
@@ -103,6 +127,8 @@ void DXLResource::Unmap(uint32_t subresource, const D3D12_RANGE* writtenRange)
     ToNative()->Unmap(subresource, writtenRange);
 }
 
+#if DXL_ENABLE_EXTENSIONS()
+
 void* DXLResource::Map(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex)
 {
     const D3D12_RESOURCE_DESC1 desc = ToNative()->GetDesc1();
@@ -119,6 +145,8 @@ void DXLResource::Unmap(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIn
     const uint32_t subresourceIndex = D3D12CalcSubresource(mipLevel, arrayIndex, planeIndex, desc.MipLevels, desc.DepthOrArraySize);
     ToNative()->Unmap(subresourceIndex, nullptr);
 }
+
+#endif
 
 DXL_RESOURCE_DESC DXLResource::GetDesc() const
 {
@@ -179,6 +207,13 @@ D3D12_FENCE_FLAGS DXLFence::GetCreationFlags() const
 
 // == DXLPipelineState ======================================================
 
+HRESULT DXLPipelineState::GetRootSignature(REFIID riid, void** outRootSignature) const
+{
+    return ToNative()->GetRootSignature(riid, outRootSignature);
+}
+
+#if DXL_ENABLE_EXTENSIONS()
+
 DXLRootSignature DXLPipelineState::GetRootSignature() const
 {
     ID3D12RootSignature* rootSig = nullptr;
@@ -186,9 +221,46 @@ DXLRootSignature DXLPipelineState::GetRootSignature() const
     return DXLRootSignature(rootSig);
 }
 
-HRESULT DXLPipelineState::GetRootSignature(REFIID riid, void** outRootSignature) const
+#endif
+
+// == DXLStateObjectProperties =====================================================
+
+void* DXLStateObjectProperties::GetShaderIdentifier(const wchar_t* exportName)
 {
-    return ToNative()->GetRootSignature(riid, outRootSignature);
+    return ToNative()->GetShaderIdentifier(exportName);
+}
+
+uint64_t DXLStateObjectProperties::GetShaderStackSize(const wchar_t* exportName)
+{
+    return ToNative()->GetShaderStackSize(exportName);
+}
+
+#if DXL_ENABLE_EXTENSIONS()
+void* DXLStateObjectProperties::GetShaderIdentifier(const char* exportName)
+{
+    return ToNative()->GetShaderIdentifier(WideStringConverter(exportName).wideString);
+}
+
+uint64_t DXLStateObjectProperties::GetShaderStackSize(const char* exportName)
+{
+    return ToNative()->GetShaderStackSize(WideStringConverter(exportName).wideString);
+}
+
+D3D12_PROGRAM_IDENTIFIER DXLStateObjectProperties::GetProgramIdentifier(const char* programName)
+{
+    return ToNative()->GetProgramIdentifier(WideStringConverter(programName).wideString);
+}
+
+#endif
+
+uint64_t DXLStateObjectProperties::GetPipelineStackSize()
+{
+    return ToNative()->GetPipelineStackSize();
+}
+
+void DXLStateObjectProperties::SetPipelineStackSize(uint64_t pipelineStackSizeInBytes)
+{
+    return ToNative()->SetPipelineStackSize(pipelineStackSizeInBytes);
 }
 
 // == DXLDescriptorHeap =====================================================
