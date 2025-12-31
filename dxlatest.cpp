@@ -722,9 +722,14 @@ uint32_t DXLDevice::GetNodeCount()
     return ToNative()->GetNodeCount();
 }
 
-uint32_t DXLDevice::GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE descriptorHeapType)
+LUID DXLDevice::GetAdapterLuid()
 {
-    return ToNative()->GetDescriptorHandleIncrementSize(descriptorHeapType);
+    return ToNative()->GetAdapterLuid();
+}
+
+HRESULT DXLDevice::CheckFeatureSupport(D3D12_FEATURE feature, void* featureSupportData, uint32_t featureSupportDataSize)
+{
+    return ToNative()->CheckFeatureSupport(feature, featureSupportData, featureSupportDataSize);
 }
 
 HRESULT DXLDevice::CreateCommandQueue(const D3D12_COMMAND_QUEUE_DESC* desc, REFIID riid, void** outCommandQueue)
@@ -737,9 +742,9 @@ HRESULT DXLDevice::CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type, REFIID r
     return ToNative()->CreateCommandAllocator(type, riid, outCommandAllocator);
 }
 
-HRESULT DXLDevice::CreateCommandList(uint32_t nodeMask, D3D12_COMMAND_LIST_TYPE type, DXLCommandAllocator commandAllocator, DXLPipelineState initialState, REFIID riid, void** outCommandList)
+HRESULT DXLDevice::CreateCommandList1(uint32_t nodeMask, D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags, REFIID riid, void** outCommandList)
 {
-    return ToNative()->CreateCommandList(nodeMask, type, commandAllocator, initialState, riid, outCommandList);
+    return ToNative()->CreateCommandList1(nodeMask, type, flags, riid, outCommandList);
 }
 
 HRESULT DXLDevice::CreateGraphicsPipelineState(const D3D12_GRAPHICS_PIPELINE_STATE_DESC* desc, REFIID riid, void** outPipelineState)
@@ -752,14 +757,19 @@ HRESULT DXLDevice::CreateComputePipelineState(const D3D12_COMPUTE_PIPELINE_STATE
     return ToNative()->CreateComputePipelineState(desc, riid, outOipelineState);
 }
 
-HRESULT DXLDevice::CheckFeatureSupport(D3D12_FEATURE feature, void* featureSupportData, uint32_t featureSupportDataSize)
+HRESULT DXLDevice::CreatePipelineState(const D3D12_PIPELINE_STATE_STREAM_DESC* desc, REFIID riid, void** outPipelineState)
 {
-    return ToNative()->CheckFeatureSupport(feature, featureSupportData, featureSupportDataSize);
+    return ToNative()->CreatePipelineState(desc, riid, outPipelineState);
 }
 
 HRESULT DXLDevice::CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_DESC* descriptorHeapDesc, REFIID riid, void** outHeap)
 {
     return ToNative()->CreateDescriptorHeap(descriptorHeapDesc, riid, outHeap);
+}
+
+uint32_t DXLDevice::GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE descriptorHeapType)
+{
+    return ToNative()->GetDescriptorHandleIncrementSize(descriptorHeapType);
 }
 
 HRESULT DXLDevice::CreateRootSignature(uint32_t nodeMask, const void* blobWithRootSignature, SIZE_T blobLengthInBytes, REFIID riid, void** outRootSignature)
@@ -817,6 +827,16 @@ HRESULT DXLDevice::CreateHeap(const D3D12_HEAP_DESC* desc, REFIID riid, void** o
     return ToNative()->CreateHeap(desc, riid, outHeap);
 }
 
+HRESULT DXLDevice::OpenExistingHeapFromAddress(const void* address, REFIID riid, void** outHeap)
+{
+    return ToNative()->OpenExistingHeapFromAddress(address, riid, outHeap);
+}
+
+HRESULT DXLDevice::OpenExistingHeapFromFileMapping(HANDLE fileMapping, REFIID riid, void** outHeap)
+{
+    return ToNative()->OpenExistingHeapFromFileMapping(fileMapping, riid, outHeap);
+}
+
 D3D12_HEAP_PROPERTIES DXLDevice::GetCustomHeapProperties(uint32_t nodeMask, D3D12_HEAP_TYPE heapType)
 {
     return ToNative()->GetCustomHeapProperties(nodeMask, heapType);
@@ -857,14 +877,34 @@ HRESULT DXLDevice::MakeResident(uint32_t numObjects, ID3D12Pageable*const* objec
     return ToNative()->MakeResident(numObjects, objects);
 }
 
+HRESULT DXLDevice::EnqueueMakeResident(D3D12_RESIDENCY_FLAGS flags, uint32_t numObjects, ID3D12Pageable*const* objects, ID3D12Fence* fenceToSignal, UINT64 fenceValueToSignal)
+{
+    return ToNative()->EnqueueMakeResident(flags, numObjects, objects, fenceToSignal, fenceValueToSignal);
+}
+
 HRESULT DXLDevice::Evict(uint32_t numObjects, ID3D12Pageable*const* objects)
 {
     return ToNative()->Evict(numObjects, objects);
 }
 
+HRESULT DXLDevice::SetResidencyPriority(uint32_t numObjects, ID3D12Pageable*const* objects, const D3D12_RESIDENCY_PRIORITY* priorities)
+{
+    return ToNative()->SetResidencyPriority(numObjects, objects, priorities);
+}
+
 HRESULT DXLDevice::CreateFence(uint64_t initialValue, D3D12_FENCE_FLAGS flags, REFIID riid, void** outFence)
 {
     return ToNative()->CreateFence(initialValue, flags, riid, outFence);
+}
+
+HRESULT DXLDevice::SetEventOnMultipleFenceCompletion(ID3D12Fence*const* fences, const uint64_t* fenceValues, uint32_t numFences, D3D12_MULTIPLE_FENCE_WAIT_FLAGS flags, HANDLE event)
+{
+    return ToNative()->SetEventOnMultipleFenceCompletion(fences, fenceValues, numFences, flags, event);
+}
+
+void DXLDevice::RemoveDevice()
+{
+    ToNative()->RemoveDevice();
 }
 
 HRESULT DXLDevice::GetDeviceRemovedReason()
@@ -887,11 +927,6 @@ HRESULT DXLDevice::SetStablePowerState(bool enable)
 void DXLDevice::GetResourceTiling(DXLResource tiledResource, uint32_t* outNumTilesForEntireResource, D3D12_PACKED_MIP_INFO* outPackedMipDesc, D3D12_TILE_SHAPE* outStandardTileShapeForNonPackedMips, uint32_t* numSubresourceTilings, uint32_t firstSubresourceTilingToGet, D3D12_SUBRESOURCE_TILING* outSubresourceTilingsForNonPackedMips)
 {
     return ToNative()->GetResourceTiling(tiledResource, outNumTilesForEntireResource, outPackedMipDesc, outStandardTileShapeForNonPackedMips, numSubresourceTilings, firstSubresourceTilingToGet, outSubresourceTilingsForNonPackedMips);
-}
-
-LUID DXLDevice::GetAdapterLuid()
-{
-    return ToNative()->GetAdapterLuid();
 }
 
 } // namespace dxl

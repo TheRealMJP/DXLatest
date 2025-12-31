@@ -486,19 +486,20 @@ public:
     DXL_INTERFACE_BOILERPLATE(DXLDevice, ID3D12Device14);
 
     uint32_t GetNodeCount();
-
-    uint32_t GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE descriptorHeapType);
-
-    HRESULT CreateCommandQueue(const D3D12_COMMAND_QUEUE_DESC* desc, REFIID riid, void** outCommandQueue);
-    HRESULT CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type, REFIID riid, void** outCommandAllocator);
-    HRESULT CreateCommandList(uint32_t nodeMask, D3D12_COMMAND_LIST_TYPE type, DXLCommandAllocator commandAllocator, DXLPipelineState initialState, REFIID riid, void** outCommandList);
-
-    HRESULT CreateGraphicsPipelineState(const D3D12_GRAPHICS_PIPELINE_STATE_DESC* desc, REFIID riid, void** outPipelineState);
-    HRESULT CreateComputePipelineState(const D3D12_COMPUTE_PIPELINE_STATE_DESC* desc, REFIID riid, void** outOipelineState);
+    LUID GetAdapterLuid();
 
     HRESULT CheckFeatureSupport(D3D12_FEATURE feature, void* featureSupportData, uint32_t featureSupportDataSize);
 
+    HRESULT CreateCommandQueue(const D3D12_COMMAND_QUEUE_DESC* desc, REFIID riid, void** outCommandQueue);
+    HRESULT CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type, REFIID riid, void** outCommandAllocator);
+    HRESULT CreateCommandList1(uint32_t nodeMask, D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags, REFIID riid, void** outCommandList);
+
+    HRESULT CreateGraphicsPipelineState(const D3D12_GRAPHICS_PIPELINE_STATE_DESC* desc, REFIID riid, void** outPipelineState);
+    HRESULT CreateComputePipelineState(const D3D12_COMPUTE_PIPELINE_STATE_DESC* desc, REFIID riid, void** outOipelineState);
+    HRESULT CreatePipelineState(const D3D12_PIPELINE_STATE_STREAM_DESC* desc, REFIID riid, void** outPipelineState);
+
     HRESULT CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_DESC* descriptorHeapDesc, REFIID riid, void** outHeap);
+    uint32_t GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE descriptorHeapType);
 
     HRESULT CreateRootSignature(uint32_t nodeMask, const void* blobWithRootSignature, SIZE_T blobLengthInBytes, REFIID riid, void** outRootSignature);
 
@@ -523,8 +524,21 @@ public:
     );
 
     HRESULT CreateHeap(const D3D12_HEAP_DESC* desc, REFIID riid, void** outHeap);
+    HRESULT OpenExistingHeapFromAddress(const void* address, REFIID riid, void** outHeap);
+    HRESULT OpenExistingHeapFromFileMapping(HANDLE fileMapping, REFIID riid, void** outHeap);
 
     D3D12_HEAP_PROPERTIES GetCustomHeapProperties(uint32_t nodeMask, D3D12_HEAP_TYPE heapType);
+
+    void GetCopyableFootprints1(
+        const D3D12_RESOURCE_DESC1* resourceDesc,
+        uint32_t firstSubresource,
+        uint32_t numSubresources,
+        uint64_t baseOffset,
+        D3D12_PLACED_SUBRESOURCE_FOOTPRINT* layouts,
+        uint32_t* numRows,
+        uint64_t* rowSizeInBytes,
+        uint64_t* totalBytes
+    );
 
     HRESULT CreateCommittedResource3(
         const D3D12_HEAP_PROPERTIES* heapProperties,
@@ -562,32 +576,6 @@ public:
         void** outResource
     );
 
-    HRESULT CreateSharedHandle(DXLDeviceChild object, const SECURITY_ATTRIBUTES* attributes, uint32_t access, const wchar_t* name, HANDLE* outHandle);
-    HRESULT OpenSharedHandle(HANDLE ntHandle, REFIID riid, void** outObj);
-    HRESULT OpenSharedHandleByName(const wchar_t* name, uint32_t access, HANDLE* outHandle);
-
-    HRESULT MakeResident(uint32_t numObjects, ID3D12Pageable*const* objects);
-    HRESULT Evict(uint32_t numObjects, ID3D12Pageable*const* objects);
-
-    HRESULT CreateFence(uint64_t initialValue, D3D12_FENCE_FLAGS flags, REFIID riid, void** outFence);
-
-    HRESULT GetDeviceRemovedReason();
-
-    void GetCopyableFootprints1(
-        const D3D12_RESOURCE_DESC1* resourceDesc,
-        uint32_t firstSubresource,
-        uint32_t numSubresources,
-        uint64_t baseOffset,
-        D3D12_PLACED_SUBRESOURCE_FOOTPRINT* layouts,
-        uint32_t* numRows,
-        uint64_t* rowSizeInBytes,
-        uint64_t* totalBytes
-    );
-
-#if DXL_ENABLE_SET_STABLE_POWER_STATE()
-    HRESULT SetStablePowerState(bool enable);
-#endif
-
     void GetResourceTiling(
         DXLResource tiledResource,
         uint32_t* outNumTilesForEntireResource,
@@ -598,7 +586,24 @@ public:
         D3D12_SUBRESOURCE_TILING* outSubresourceTilingsForNonPackedMips
     );
 
-    LUID GetAdapterLuid();
+    HRESULT CreateSharedHandle(DXLDeviceChild object, const SECURITY_ATTRIBUTES* attributes, uint32_t access, const wchar_t* name, HANDLE* outHandle);
+    HRESULT OpenSharedHandle(HANDLE ntHandle, REFIID riid, void** outObj);
+    HRESULT OpenSharedHandleByName(const wchar_t* name, uint32_t access, HANDLE* outHandle);
+
+    HRESULT MakeResident(uint32_t numObjects, ID3D12Pageable*const* objects);
+    HRESULT EnqueueMakeResident(D3D12_RESIDENCY_FLAGS flags, uint32_t numObjects, ID3D12Pageable*const* objects, ID3D12Fence* fenceToSignal, UINT64 fenceValueToSignal);
+    HRESULT Evict(uint32_t numObjects, ID3D12Pageable*const* objects);
+    HRESULT SetResidencyPriority(uint32_t numObjects, ID3D12Pageable*const* objects, const D3D12_RESIDENCY_PRIORITY* priorities);
+
+    HRESULT CreateFence(uint64_t initialValue, D3D12_FENCE_FLAGS flags, REFIID riid, void** outFence);
+    HRESULT SetEventOnMultipleFenceCompletion(ID3D12Fence*const* fences, const uint64_t* fenceValues, uint32_t numFences, D3D12_MULTIPLE_FENCE_WAIT_FLAGS flags, HANDLE event);
+
+    void RemoveDevice();
+    HRESULT GetDeviceRemovedReason();
+
+#if DXL_ENABLE_SET_STABLE_POWER_STATE()
+    HRESULT SetStablePowerState(bool enable);
+#endif
 };
 
 } // namespace dxl
