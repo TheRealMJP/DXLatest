@@ -161,6 +161,7 @@ What To Deprecate
 * Protected Sessions
 * Meta commands
 * Lifetime trackers
+* Debug InfoQueue features aside from registering a callback
 
 ### Maybes
 

@@ -968,6 +968,11 @@ HRESULT DXLDevice::CreateReservedResource2(const D3D12_RESOURCE_DESC* desc, D3D1
     return ToNative()->CreateReservedResource2(desc, initialLayout, optimizedClearValue, protectedSession, numCastableFormats, castableFormats, riid, outResource);
 }
 
+void DXLDevice::GetResourceTiling(DXLResource tiledResource, uint32_t* outNumTilesForEntireResource, D3D12_PACKED_MIP_INFO* outPackedMipDesc, D3D12_TILE_SHAPE* outStandardTileShapeForNonPackedMips, uint32_t* numSubresourceTilings, uint32_t firstSubresourceTilingToGet, D3D12_SUBRESOURCE_TILING* outSubresourceTilingsForNonPackedMips)
+{
+    return ToNative()->GetResourceTiling(tiledResource, outNumTilesForEntireResource, outPackedMipDesc, outStandardTileShapeForNonPackedMips, numSubresourceTilings, firstSubresourceTilingToGet, outSubresourceTilingsForNonPackedMips);
+}
+
 HRESULT DXLDevice::CreateSharedHandle(DXLDeviceChild object, const SECURITY_ATTRIBUTES* attributes, uint32_t access, const wchar_t* name, HANDLE* outHandle)
 {
     return ToNative()->CreateSharedHandle(object, attributes, access, name, outHandle);
@@ -1034,6 +1039,7 @@ void DXLDevice::GetCopyableFootprints1(const D3D12_RESOURCE_DESC1* resourceDesc,
 }
 
 #if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+
 HRESULT DXLDevice::SetStablePowerState(bool enable)
 {
     return ToNative()->SetStablePowerState(enable);
@@ -1044,11 +1050,183 @@ HRESULT DXLDevice::SetBackgroundProcessingMode(D3D12_BACKGROUND_PROCESSING_MODE 
     return ToNative()->SetBackgroundProcessingMode(mode, measurementsAction, eventToSignalUponCompletion, outFurtherMeasurementsDesired);
 }
 
+#endif // DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+
+#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+
+// == DXLDebug ======================================================
+
+void DXLDebug::EnableDebugLayer()
+{
+    ToNative()->EnableDebugLayer();
+}
+
+void DXLDebug::DisableDebugLayer()
+{
+    ToNative()->DisableDebugLayer();
+}
+
+void DXLDebug::SetEnableGPUBasedValidation(bool enable)
+{
+    ToNative()->SetEnableGPUBasedValidation(enable);
+}
+
+void DXLDebug::SetGPUBasedValidationFlags(D3D12_GPU_BASED_VALIDATION_FLAGS flags)
+{
+    ToNative()->SetGPUBasedValidationFlags(flags);
+}
+
+void DXLDebug::SetEnableSynchronizedCommandQueueValidation(bool enable)
+{
+    ToNative()->SetEnableSynchronizedCommandQueueValidation(enable);
+}
+
+void DXLDebug::SetEnableAutoName(bool enable)
+{
+    ToNative()->SetEnableAutoName(enable);
+}
+
+// == DXLDebugDevice ======================================================
+
+#if DXL_ENABLE_EXTENSIONS()
+
+DXLDebugDevice DXLDebugDevice::FromDevice(DXLDevice device)
+{
+    ID3D12DebugDevice2* debugDevice = nullptr;
+    device->QueryInterface(IID_PPV_ARGS(&debugDevice));
+    // TODO: assert here
+    return DXLDebugDevice(debugDevice);
+}
+
 #endif
 
-void DXLDevice::GetResourceTiling(DXLResource tiledResource, uint32_t* outNumTilesForEntireResource, D3D12_PACKED_MIP_INFO* outPackedMipDesc, D3D12_TILE_SHAPE* outStandardTileShapeForNonPackedMips, uint32_t* numSubresourceTilings, uint32_t firstSubresourceTilingToGet, D3D12_SUBRESOURCE_TILING* outSubresourceTilingsForNonPackedMips)
+HRESULT DXLDebugDevice::SetFeatureMask(D3D12_DEBUG_FEATURE mask)
 {
-    return ToNative()->GetResourceTiling(tiledResource, outNumTilesForEntireResource, outPackedMipDesc, outStandardTileShapeForNonPackedMips, numSubresourceTilings, firstSubresourceTilingToGet, outSubresourceTilingsForNonPackedMips);
+    return ToNative()->SetFeatureMask(mask);
 }
+
+D3D12_DEBUG_FEATURE DXLDebugDevice::GetFeatureMask()
+{
+    return ToNative()->GetFeatureMask();
+}
+
+HRESULT DXLDebugDevice::ReportLiveDeviceObjects(D3D12_RLDO_FLAGS flags)
+{
+    return ToNative()->ReportLiveDeviceObjects(flags);
+}
+
+HRESULT DXLDebugDevice::SetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE type, const void*data, uint32_t dataSize)
+{
+    return ToNative()->SetDebugParameter(type, data, dataSize);
+}
+
+HRESULT DXLDebugDevice::GetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE type, void* data, uint32_t dataSize)
+{
+    return ToNative()->GetDebugParameter(type, data, dataSize);
+}
+
+// == DXLDebugCommandQueue ======================================================
+
+#if DXL_ENABLE_EXTENSIONS()
+
+DXLDebugCommandQueue DXLDebugCommandQueue::FromCommandQueue(DXLCommandQueue commandQueue)
+{
+    ID3D12DebugCommandQueue1* debugQueue = nullptr;
+    commandQueue->QueryInterface(IID_PPV_ARGS(&debugQueue));
+    // TODO: assert here
+    return DXLDebugCommandQueue(debugQueue);
+}
+
+#endif
+
+void DXLDebugCommandQueue::AssertResourceAccess(DXLResource resource, uint32_t subresource, D3D12_BARRIER_ACCESS access)
+{
+    ToNative()->AssertResourceAccess(resource, subresource, access);
+}
+
+void DXLDebugCommandQueue::AssertTextureLayout(DXLResource resource, uint32_t subresource, D3D12_BARRIER_LAYOUT layout)
+{
+    ToNative()->AssertTextureLayout(resource, subresource, layout);
+}
+
+// == DXLDebugCommandList ======================================================
+
+#if DXL_ENABLE_EXTENSIONS()
+
+DXLDebugCommandList DXLDebugCommandList::FromCommandList(DXLCommandList commandList)
+{
+    ID3D12DebugCommandList3* debugList = nullptr;
+    commandList->QueryInterface(IID_PPV_ARGS(&debugList));
+    // TODO: assert here
+    return DXLDebugCommandList(debugList);
+}
+
+#endif
+
+HRESULT DXLDebugCommandList::SetFeatureMask(D3D12_DEBUG_FEATURE mask)
+{
+    return ToNative()->SetFeatureMask(mask);
+}
+
+D3D12_DEBUG_FEATURE DXLDebugCommandList::GetFeatureMask()
+{
+    return ToNative()->GetFeatureMask();
+}
+
+HRESULT DXLDebugCommandList::SetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE type, const void*data, uint32_t dataSize)
+{
+    return ToNative()->SetDebugParameter(type, data, dataSize);
+}
+
+HRESULT DXLDebugCommandList::GetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE type, void* data, uint32_t dataSize)
+{
+    return ToNative()->GetDebugParameter(type, data, dataSize);
+}
+
+void DXLDebugCommandList::AssertResourceAccess(DXLResource resource, uint32_t subresource, D3D12_BARRIER_ACCESS access)
+{
+    ToNative()->AssertResourceAccess(resource, subresource, access);
+}
+
+void DXLDebugCommandList::AssertTextureLayout(DXLResource resource, uint32_t subresource, D3D12_BARRIER_LAYOUT layout)
+{
+    ToNative()->AssertTextureLayout(resource, subresource, layout);
+}
+
+// == DXLDebugInfoQueue ======================================================
+
+#if DXL_ENABLE_EXTENSIONS()
+
+DXLDebugInfoQueue DXLDebugInfoQueue::FromDevice(DXLDevice device)
+{
+    ID3D12InfoQueue1* infoQueue = nullptr;
+    device->QueryInterface(IID_PPV_ARGS(&infoQueue));
+    // TODO: assert here
+    return DXLDebugInfoQueue(infoQueue);
+}
+
+#endif
+
+HRESULT DXLDebugInfoQueue::RegisterMessageCallback(D3D12MessageFunc callbackFunc, D3D12_MESSAGE_CALLBACK_FLAGS callbackFilterFlags, void* context, DWORD* outCallbackCookie)
+{
+    return ToNative()->RegisterMessageCallback(callbackFunc, callbackFilterFlags, context, outCallbackCookie);
+}
+
+HRESULT DXLDebugInfoQueue::UnregisterMessageCallback(DWORD callbackCookie)
+{
+    return ToNative()->UnregisterMessageCallback(callbackCookie);
+}
+
+void DXLDebugInfoQueue::SetMuteDebugOutput(bool mute)
+{
+    ToNative()->SetMuteDebugOutput(mute);
+}
+
+bool DXLDebugInfoQueue::GetMuteDebugOutput()
+{
+    return ToNative()->GetMuteDebugOutput();
+}
+
+#endif // DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
 
 } // namespace dxl

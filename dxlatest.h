@@ -462,7 +462,7 @@ public:
     void CopyRaytracingAccelerationStructure(D3D12_GPU_VIRTUAL_ADDRESS destAccelerationStructureData, D3D12_GPU_VIRTUAL_ADDRESS sourceAccelerationStructureData, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE mode);
 };
 
-class DXLCommandQueue : DXLPageable
+class DXLCommandQueue : public DXLPageable
 {
 public:
 
@@ -642,5 +642,100 @@ public:
     HRESULT SetBackgroundProcessingMode(D3D12_BACKGROUND_PROCESSING_MODE mode, D3D12_MEASUREMENTS_ACTION measurementsAction, HANDLE eventToSignalUponCompletion, BOOL* outFurtherMeasurementsDesired);
 #endif
 };
+
+#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+
+class DXLDebug : public DXLBase
+{
+
+public:
+
+    DXL_INTERFACE_BOILERPLATE(DXLDebug, ID3D12Debug6);
+
+    void EnableDebugLayer();
+    void DisableDebugLayer();
+
+    void SetEnableGPUBasedValidation(bool enable);
+    void SetGPUBasedValidationFlags(D3D12_GPU_BASED_VALIDATION_FLAGS flags);
+
+    void SetEnableSynchronizedCommandQueueValidation(bool enable);
+
+    void SetEnableAutoName(bool enable);
+};
+
+class DXLDebugDevice : public DXLBase
+{
+
+public:
+
+    DXL_INTERFACE_BOILERPLATE(DXLDebugDevice, ID3D12DebugDevice2);
+
+#if DXL_ENABLE_EXTENSIONS()
+    static DXLDebugDevice FromDevice(DXLDevice device);
+#endif
+
+    HRESULT SetFeatureMask(D3D12_DEBUG_FEATURE mask);
+    D3D12_DEBUG_FEATURE GetFeatureMask();
+    HRESULT ReportLiveDeviceObjects(D3D12_RLDO_FLAGS flags);
+
+    HRESULT SetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE type, const void* data, uint32_t dataSize);
+    HRESULT GetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE type, void* data, uint32_t dataSize);
+};
+
+class DXLDebugCommandQueue : public DXLBase
+{
+
+public:
+
+    DXL_INTERFACE_BOILERPLATE(DXLDebugCommandQueue, ID3D12DebugCommandQueue1);
+
+#if DXL_ENABLE_EXTENSIONS()
+    static DXLDebugCommandQueue FromCommandQueue(DXLCommandQueue commandQueue);
+#endif
+
+    void AssertResourceAccess(DXLResource resource, uint32_t subresource, D3D12_BARRIER_ACCESS access);
+    void AssertTextureLayout(DXLResource resource, uint32_t subresource, D3D12_BARRIER_LAYOUT layout);
+};
+
+class DXLDebugCommandList : public DXLBase
+{
+
+public:
+
+    DXL_INTERFACE_BOILERPLATE(DXLDebugCommandList, ID3D12DebugCommandList3);
+
+#if DXL_ENABLE_EXTENSIONS()
+    static DXLDebugCommandList FromCommandList(DXLCommandList commandList);
+#endif
+
+    HRESULT SetFeatureMask(D3D12_DEBUG_FEATURE Mask);
+    D3D12_DEBUG_FEATURE GetFeatureMask();
+
+    HRESULT SetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE type, const void* data, uint32_t dataSize);
+    HRESULT GetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE type, void* data, uint32_t dataSize);
+
+    void AssertResourceAccess(DXLResource resource, uint32_t subresource, D3D12_BARRIER_ACCESS access);
+    void AssertTextureLayout(DXLResource resource, uint32_t subresource, D3D12_BARRIER_LAYOUT layout);
+};
+
+class DXLDebugInfoQueue : public DXLBase
+{
+
+public:
+
+    DXL_INTERFACE_BOILERPLATE(DXLDebugInfoQueue, ID3D12InfoQueue1);
+
+#if DXL_ENABLE_EXTENSIONS()
+    static DXLDebugInfoQueue FromDevice(DXLDevice device);
+#endif
+
+    HRESULT RegisterMessageCallback(D3D12MessageFunc callbackFunc, D3D12_MESSAGE_CALLBACK_FLAGS callbackFilterFlags, void* context, DWORD* outCallbackCookie);
+    HRESULT UnregisterMessageCallback(DWORD callbackCookie);
+
+    void SetMuteDebugOutput(bool mute);
+    bool GetMuteDebugOutput();
+};
+
+#endif
 
 } // namespace dxl
