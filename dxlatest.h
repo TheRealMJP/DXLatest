@@ -292,7 +292,7 @@ public:
     void IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY primitiveTopology);
     void IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view);
 #if DXL_ENABLE_EXTENSIONS()
-    void IASetIndexBuffer(D3D12_GPU_VIRTUAL_ADDRESS nufferLocation, uint32_t sizeInBytes, DXGI_FORMAT format = DXGI_FORMAT_R16_UINT);
+    void IASetIndexBuffer(D3D12_GPU_VIRTUAL_ADDRESS bufferLocation, uint32_t sizeInBytes, DXGI_FORMAT format = DXGI_FORMAT_R16_UINT);
 #endif
     void IASetIndexBufferStripCutValue(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE ibStripCutValue);
 
