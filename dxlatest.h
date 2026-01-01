@@ -19,63 +19,6 @@
 namespace dxl
 {
 
-struct DXL_HEAP_PROPERTIES
-{
-    D3D12_HEAP_TYPE Type = D3D12_HEAP_TYPE_DEFAULT;
-    D3D12_CPU_PAGE_PROPERTY CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    D3D12_MEMORY_POOL MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-    uint32_t CreationNodeMask = 0;
-    uint32_t VisibleNodeMask = 0;
-
-    DXL_STRUCT_BOILERPLATE(DXL_HEAP_PROPERTIES, D3D12_HEAP_PROPERTIES);
-};
-
-struct DXL_HEAP_DESC
-{
-    uint64_t SizeInBytes = 0;
-    DXL_HEAP_PROPERTIES Properties = { };
-    uint64_t Alignment = 0;
-    D3D12_HEAP_FLAGS Flags = D3D12_HEAP_FLAG_NONE;
-
-    DXL_STRUCT_BOILERPLATE(DXL_HEAP_DESC, D3D12_HEAP_DESC);
-};
-
-struct DXL_RESOURCE_DESC
-{
-    D3D12_RESOURCE_DIMENSION Dimension = D3D12_RESOURCE_DIMENSION_UNKNOWN;
-    uint64_t Alignment = 0;
-    uint64_t Width = 0;
-    uint32_t Height = 0;
-    uint16_t DepthOrArraySize = 0;
-    uint16_t MipLevels = 0;
-    DXGI_FORMAT Format = DXGI_FORMAT_UNKNOWN;
-    DXGI_SAMPLE_DESC SampleDesc = { 1, 0 };
-    D3D12_TEXTURE_LAYOUT Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-    D3D12_RESOURCE_FLAGS Flags = D3D12_RESOURCE_FLAG_NONE;
-    D3D12_MIP_REGION SamplerFeedbackMipRegion = { };
-
-    DXL_STRUCT_BOILERPLATE(DXL_RESOURCE_DESC, D3D12_RESOURCE_DESC1);
-};
-
-struct DXL_DESCRIPTOR_HEAP_DESC
-{
-    D3D12_DESCRIPTOR_HEAP_TYPE Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    uint32_t NumDescriptors = 0;
-    D3D12_DESCRIPTOR_HEAP_FLAGS Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    uint32_t NodeMask = 0;
-
-    DXL_STRUCT_BOILERPLATE(DXL_DESCRIPTOR_HEAP_DESC, D3D12_DESCRIPTOR_HEAP_DESC);
-};
-
-struct DXL_INDEX_BUFFER_VIEW
-{
-    D3D12_GPU_VIRTUAL_ADDRESS BufferLocation = 0;
-    uint32_t SizeInBytes = 0;
-    DXGI_FORMAT Format = DXGI_FORMAT_R16_UINT;
-
-    DXL_STRUCT_BOILERPLATE(DXL_INDEX_BUFFER_VIEW, D3D12_INDEX_BUFFER_VIEW);
-};
-
 #define DXL_INTERFACE_BOILERPLATE(DXLClass, D3D12Interface) \
     DXLClass() = default;   \
     DXLClass(D3D12Interface* d3d12Interface) { nativeInterface = d3d12Interface; }   \
@@ -166,7 +109,7 @@ public:
 
     DXL_INTERFACE_BOILERPLATE(DXLHeap, ID3D12Heap1);
 
-    DXL_HEAP_DESC GetDesc() const;
+    D3D12_HEAP_DESC GetDesc() const;
 };
 
 class DXLResource : public DXLPageable
@@ -184,14 +127,14 @@ public:
     void Unmap(uint32_t mipLevel, uint32_t arrayIndex = 0, uint32_t planeIndex = 0);
 #endif
 
-    DXL_RESOURCE_DESC GetDesc() const;
+    D3D12_RESOURCE_DESC1 GetDesc1() const;
 
     D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() const;
 
     HRESULT WriteToSubresource(uint32_t dstSubresource, const D3D12_BOX* dstBox, const void* srcData, uint32_t srcRowPitch, uint32_t srcDepthPitch);
     HRESULT ReadFromSubresource(void* dstData, uint32_t dstRowPitch, uint32_t dstDepthPitch, uint32_t srcSubresource, const D3D12_BOX* srcBox) const;
 
-    HRESULT GetHeapProperties(DXL_HEAP_PROPERTIES* outHeapProperties, D3D12_HEAP_FLAGS* outHeapFlags) const;
+    HRESULT GetHeapProperties(D3D12_HEAP_PROPERTIES* outHeapProperties, D3D12_HEAP_FLAGS* outHeapFlags) const;
 };
 
 class DXLCommandAllocator : public DXLPageable
@@ -295,7 +238,7 @@ public:
 
     DXL_INTERFACE_BOILERPLATE(DXLDescriptorHeap, ID3D12DescriptorHeap);
 
-    DXL_DESCRIPTOR_HEAP_DESC GetDesc();
+    D3D12_DESCRIPTOR_HEAP_DESC GetDesc();
     D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandleForHeapStart();
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandleForHeapStart();
 };
@@ -349,7 +292,7 @@ public:
     void IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY primitiveTopology);
     void IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view);
 #if DXL_ENABLE_EXTENSIONS()
-    void IASetIndexBuffer(DXL_INDEX_BUFFER_VIEW view);
+    void IASetIndexBuffer(D3D12_GPU_VIRTUAL_ADDRESS nufferLocation, uint32_t sizeInBytes, DXGI_FORMAT format = DXGI_FORMAT_R16_UINT);
 #endif
     void IASetIndexBufferStripCutValue(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE ibStripCutValue);
 

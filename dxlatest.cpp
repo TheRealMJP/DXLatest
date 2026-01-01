@@ -9,10 +9,6 @@
 namespace dxl
 {
 
-static_assert(sizeof(DXL_HEAP_PROPERTIES) == sizeof(D3D12_HEAP_PROPERTIES));
-static_assert(sizeof(DXL_HEAP_DESC) == sizeof(D3D12_HEAP_DESC));
-static_assert(sizeof(DXL_RESOURCE_DESC) == sizeof(D3D12_RESOURCE_DESC1));
-
 struct WideStringConverter
 {
     wchar_t* wideString = nullptr;
@@ -104,13 +100,9 @@ HRESULT DXLDeviceChild::GetDevice(REFIID riid, void** outDevice)
     return ToNative()->GetDevice(riid, outDevice);
 }
 
-// == DXLRootSignature ======================================================
-
 // == DXLPageable ======================================================
 
-// == DXLPageable ======================================================
-
-DXL_HEAP_DESC DXLHeap::GetDesc() const
+D3D12_HEAP_DESC DXLHeap::GetDesc() const
 {
     return ToNative()->GetDesc();
 }
@@ -148,7 +140,7 @@ void DXLResource::Unmap(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIn
 
 #endif
 
-DXL_RESOURCE_DESC DXLResource::GetDesc() const
+D3D12_RESOURCE_DESC1 DXLResource::GetDesc1() const
 {
     return ToNative()->GetDesc1();
 }
@@ -168,12 +160,9 @@ HRESULT DXLResource::ReadFromSubresource(void* dstData, uint32_t dstRowPitch, ui
     return ToNative()->ReadFromSubresource(dstData, dstRowPitch, dstDepthPitch, srcSubresource, srcBox);
 }
 
-HRESULT DXLResource::GetHeapProperties(DXL_HEAP_PROPERTIES* outHeapProperties, D3D12_HEAP_FLAGS* outHeapFlags) const
+HRESULT DXLResource::GetHeapProperties(D3D12_HEAP_PROPERTIES* outHeapProperties, D3D12_HEAP_FLAGS* outHeapFlags) const
 {
-    D3D12_HEAP_PROPERTIES d3d12HeapProperties = { };
-    HRESULT hr = ToNative()->GetHeapProperties(&d3d12HeapProperties, outHeapFlags);
-    *outHeapProperties = d3d12HeapProperties;
-    return hr;
+    return ToNative()->GetHeapProperties(outHeapProperties, outHeapFlags);
 }
 
 // == DXLCommandAllocator ======================================================
@@ -356,9 +345,9 @@ uint32_t DXLWorkGraphProperties::GetEntrypointRecordAlignmentInBytes(uint32_t wo
 
 // == DXLDescriptorHeap =====================================================
 
-DXL_DESCRIPTOR_HEAP_DESC DXLDescriptorHeap::GetDesc()
+D3D12_DESCRIPTOR_HEAP_DESC DXLDescriptorHeap::GetDesc()
 {
-    return DXL_DESCRIPTOR_HEAP_DESC(ToNative()->GetDesc());
+    return ToNative()->GetDesc();
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE DXLDescriptorHeap::GetCPUDescriptorHandleForHeapStart()
@@ -465,9 +454,9 @@ void DXLCommandList::IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view)
 
 #if DXL_ENABLE_EXTENSIONS()
 
-void DXLCommandList::IASetIndexBuffer(DXL_INDEX_BUFFER_VIEW view)
+void DXLCommandList::IASetIndexBuffer(D3D12_GPU_VIRTUAL_ADDRESS bufferLocation, uint32_t sizeInBytes, DXGI_FORMAT format)
 {
-    D3D12_INDEX_BUFFER_VIEW d3d12View = view;
+    D3D12_INDEX_BUFFER_VIEW d3d12View = { .BufferLocation = bufferLocation, .SizeInBytes = sizeInBytes, .Format = format };
     ToNative()->IASetIndexBuffer(&d3d12View);
 }
 
