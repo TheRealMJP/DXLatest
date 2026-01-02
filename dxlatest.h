@@ -681,4 +681,20 @@ public:
 
 #endif
 
+#if DXL_ENABLE_EXTENSIONS()
+
+struct CreateDeviceParams
+{
+    const char* AgilitySDKPath = "";
+    bool EnableDebugLayer = false;
+    bool EnableGPUBasedValidation = true;
+    D3D12MessageFunc DebugLayerCallbackFunction = nullptr;
+};
+
+DXLDevice CreateDevice(CreateDeviceParams params);
+void Release(IUnknown*& unknown);
+void Release(DXLBase& base);
+
+#endif  // DXL_ENABLE_EXTENSIONS()
+
 } // namespace dxl

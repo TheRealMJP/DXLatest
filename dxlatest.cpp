@@ -2,12 +2,20 @@
 
 #include "AgilitySDK/include/d3dx12/d3dx12.h"
 
+#include <wrl.h>
+#include <dxgi.h>
+#include <dxgi1_6.h>
+
 #ifdef _MSC_VER
 #pragma comment(lib, "D3D12.lib")
+#pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "DXGI.lib")
 #endif
 
 namespace dxl
 {
+
+using Microsoft::WRL::ComPtr;
 
 struct WideStringConverter
 {
@@ -1217,5 +1225,66 @@ bool DXLDebugInfoQueue::GetMuteDebugOutput()
 }
 
 #endif // DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+
+#if DXL_ENABLE_EXTENSIONS()
+
+DXLDevice CreateDevice(CreateDeviceParams params)
+{
+    ComPtr<IDXGIFactory7> factory;
+    if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))))
+        return DXLDevice();
+
+    ComPtr<IDXGIAdapter4> adapter;
+    HRESULT hr = factory->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&adapter));
+
+    if (FAILED(hr))
+        return DXLDevice();
+
+    ComPtr<ID3D12SDKConfiguration1> sdkConfig;
+    if (FAILED(D3D12GetInterface(CLSID_D3D12SDKConfiguration, IID_PPV_ARGS(&sdkConfig))))
+        return DXLDevice();
+
+    ComPtr<ID3D12DeviceFactory> deviceFactory;
+    if (FAILED(sdkConfig->CreateDeviceFactory(D3D12_SDK_VERSION, params.AgilitySDKPath, IID_PPV_ARGS(&deviceFactory))))
+        return DXLDevice();
+
+#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+    if (params.EnableDebugLayer)
+    {
+        ComPtr<ID3D12Debug1> d3d12debug;
+        if (SUCCEEDED(deviceFactory->GetConfigurationInterface(CLSID_D3D12Debug, IID_PPV_ARGS(&d3d12debug))))
+            d3d12debug->EnableDebugLayer();
+
+        if (params.EnableGPUBasedValidation)
+            d3d12debug->SetEnableGPUBasedValidation(true);
+    }
+#endif
+
+    ID3D12Device14* device = nullptr;
+    if (FAILED(deviceFactory->CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device))))
+        return DXLDevice();
+
+    return DXLDevice(device);
+}
+
+void Release(IUnknown*& unknown)
+{
+    if (unknown)
+    {
+        unknown->Release();
+        unknown = nullptr;
+    }
+}
+
+void Release(DXLBase& base)
+{
+    if (base)
+    {
+        base->Release();
+        base = DXLBase();
+    }
+}
+
+#endif // DXL_ENABLE_EXTENSIONS()
 
 } // namespace dxl
