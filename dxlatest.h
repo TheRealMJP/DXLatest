@@ -23,6 +23,8 @@ namespace dxl
     DXLClass() = default;   \
     DXLClass(D3D12Interface* d3d12Interface) { nativeInterface = d3d12Interface; }   \
     D3D12Interface* ToNative() const { return reinterpret_cast<D3D12Interface*>(nativeInterface); }     \
+    D3D12Interface** AddressOfNative() { return reinterpret_cast<D3D12Interface**>(&nativeInterface); }     \
+    static IID InterfaceID() { return __uuidof(D3D12Interface); }   \
     DXLClass* operator->() { return this; }     \
     const DXLClass* operator->() const { return this; }     \
     operator D3D12Interface*() const { return ToNative(); } \
@@ -692,8 +694,17 @@ struct CreateDeviceParams
 };
 
 DXLDevice CreateDevice(CreateDeviceParams params);
+
 void Release(IUnknown*& unknown);
 void Release(DXLBase& base);
+
+template<typename TInterface> IID GetIID(TInterface** ptrToInterface) { return __uuidof(**ptrToInterface); }
+template<typename TDXLInterface> IID GetIID([[maybe_unused]] TDXLInterface* ptrToInterface) { return TDXLInterface::InterfaceID(); }
+
+template<typename TInterface> void** GetPPVArg(TInterface** ptrToInterface) { return reinterpret_cast<void**>(ptrToInterface); }
+template<typename TDXLInterface> void** GetPPVArg(TDXLInterface* ptrToInterface) { return reinterpret_cast<void**>(ptrToInterface->AddressOfNative()); }
+
+#define DXL_PPV_ARGS(ptrToInterface)    GetIID(ptrToInterface), GetPPVArg(ptrToInterface)
 
 #endif  // DXL_ENABLE_EXTENSIONS()
 

@@ -1260,11 +1260,10 @@ DXLDevice CreateDevice(CreateDeviceParams params)
     }
 #endif
 
-    ID3D12Device14* device = nullptr;
-    if (FAILED(deviceFactory->CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device))))
-        return DXLDevice();
+    DXLDevice device;
+    deviceFactory->CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, DXL_PPV_ARGS(&device));
 
-    return DXLDevice(device);
+    return DXLDevice();
 }
 
 void Release(IUnknown*& unknown)
