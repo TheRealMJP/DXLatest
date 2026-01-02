@@ -17,6 +17,52 @@ namespace dxl
 
 using Microsoft::WRL::ComPtr;
 
+void PrintAssertMessage(const char* condition, const char* msg, const char* file, const int32_t line)
+{
+    const uint64_t BufferSize = 2048;
+    char buffer[BufferSize] = { };
+    sprintf_s(buffer, BufferSize, "%s(%d): Assert Failure: ", file, line);
+
+    if(condition != nullptr)
+        sprintf_s(buffer, BufferSize, "%s'%s' ", buffer, condition);
+
+    if(msg != nullptr)
+        sprintf_s(buffer, BufferSize, "%s%s", buffer, msg);
+
+    sprintf_s(buffer, BufferSize, "%s\n", buffer);
+
+    OutputDebugStringA(buffer);
+}
+
+void AssertHandler(const char* condition, const char* file, const int32_t line, const char* msg, ...)
+{
+    const char* message = nullptr;
+    if (msg != nullptr)
+    {
+        char messageBuffer[1024] = { };
+        {
+            va_list args;
+            va_start(args, msg);
+            vsnprintf_s(messageBuffer, 1024, 1024, msg, args);
+            va_end(args);
+        }
+
+        message = messageBuffer;
+    }
+
+    return PrintAssertMessage(condition, message, file, line);
+}
+
+#define DXL_ASSERT(cond, msg, ...) \
+    do \
+    { \
+        if (!(cond)) \
+        { \
+            AssertHandler(#cond, __FILE__, __LINE__, (msg), __VA_ARGS__); \
+            __debugbreak(); \
+        } \
+    } while(0)
+
 struct WideStringConverter
 {
     wchar_t* wideString = nullptr;
@@ -1090,8 +1136,9 @@ void DXLDebug::SetEnableAutoName(bool enable)
 DXLDebugDevice DXLDebugDevice::FromDevice(DXLDevice device)
 {
     ID3D12DebugDevice2* debugDevice = nullptr;
-    device->QueryInterface(IID_PPV_ARGS(&debugDevice));
-    // TODO: assert here
+    if (FAILED(device->QueryInterface(IID_PPV_ARGS(&debugDevice))))
+        DXL_ASSERT(false, "Failed to QueryInterface debug device interface from DXLDevice. Did you enable the debug layer?");
+
     return DXLDebugDevice(debugDevice);
 }
 
@@ -1128,9 +1175,10 @@ HRESULT DXLDebugDevice::GetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE type
 
 DXLDebugCommandQueue DXLDebugCommandQueue::FromCommandQueue(DXLCommandQueue commandQueue)
 {
-    ID3D12DebugCommandQueue1* debugQueue = nullptr;
-    commandQueue->QueryInterface(IID_PPV_ARGS(&debugQueue));
-    // TODO: assert here
+    ID3D12DebugCommandQueue1* debugQueue = nullptr;    
+    if (FAILED(commandQueue->QueryInterface(IID_PPV_ARGS(&debugQueue))))
+        DXL_ASSERT(false, "Failed to QueryInterface debug command queue interface from DXLCommandQueue. Did you enable the debug layer?");
+
     return DXLDebugCommandQueue(debugQueue);
 }
 
@@ -1153,8 +1201,9 @@ void DXLDebugCommandQueue::AssertTextureLayout(DXLResource resource, uint32_t su
 DXLDebugCommandList DXLDebugCommandList::FromCommandList(DXLCommandList commandList)
 {
     ID3D12DebugCommandList3* debugList = nullptr;
-    commandList->QueryInterface(IID_PPV_ARGS(&debugList));
-    // TODO: assert here
+    if (FAILED(commandList->QueryInterface(IID_PPV_ARGS(&debugList))))
+        DXL_ASSERT(false, "Failed to QueryInterface debug command list interface from DXLCommandList. Did you enable the debug layer?");
+
     return DXLDebugCommandList(debugList);
 }
 
@@ -1196,9 +1245,10 @@ void DXLDebugCommandList::AssertTextureLayout(DXLResource resource, uint32_t sub
 
 DXLDebugInfoQueue DXLDebugInfoQueue::FromDevice(DXLDevice device)
 {
-    ID3D12InfoQueue1* infoQueue = nullptr;
-    device->QueryInterface(IID_PPV_ARGS(&infoQueue));
-    // TODO: assert here
+    ID3D12InfoQueue1* infoQueue = nullptr;    
+    if (FAILED(device->QueryInterface(IID_PPV_ARGS(&infoQueue))))
+        DXL_ASSERT(false, "Failed to QueryInterface debug command info queue interface from DXLDevice. Did you enable the debug layer?");
+
     return DXLDebugInfoQueue(infoQueue);
 }
 
