@@ -3,8 +3,6 @@
 #include "AgilitySDK/include/d3dx12/d3dx12.h"
 
 #include <wrl.h>
-#include <dxgi.h>
-#include <dxgi1_6.h>
 
 #ifdef _MSC_VER
 #pragma comment(lib, "D3D12.lib")
@@ -19,7 +17,7 @@ using Microsoft::WRL::ComPtr;
 
 static void PrintMessageBuffer(const char* msg)
 {
-    printf("%s\n", msg);
+    printf("%s", msg);
     OutputDebugStringA(msg);
 }
 
@@ -29,8 +27,11 @@ static void PrintMessage(const char* msg, ...)
 
     va_list args;
     va_start(args, msg);
-    vsnprintf_s(messageBuffer, 1024, 1024, msg, args);
+    int32_t len = vsnprintf_s(messageBuffer, 1024 - 1, 1024 - 1, msg, args);
     va_end(args);
+
+    messageBuffer[len] = '\n';
+    messageBuffer[len + 1] = 0;
 
     PrintMessageBuffer(messageBuffer);
 }
@@ -1410,7 +1411,7 @@ CreateDeviceResult CreateDevice(CreateDeviceParams params)
     ComPtr<ID3D12DeviceFactory> deviceFactory;
     hr = sdkConfig->CreateDeviceFactory(D3D12_SDK_VERSION, params.AgilitySDKPath, IID_PPV_ARGS(&deviceFactory));
     if (FAILED(hr))
-        return { DXLDevice(), hr, "Failed to create a D3D12 device factory" };
+        return { DXLDevice(), hr, "Failed to create a D3D12 device factory. Did you pass the wrong AgilitySDKPath?" };
 
 #if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
     if (params.EnableDebugLayer)

@@ -92,5 +92,8 @@
     <ClInclude Include="..\Shared\Window.h">
       <Filter>Shared</Filter>
     </ClInclude>
+    <ClInclude Include="..\Shared\ExampleHelpers.h">
+      <Filter>Shared</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

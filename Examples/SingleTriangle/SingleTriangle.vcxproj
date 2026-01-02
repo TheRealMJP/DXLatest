@@ -164,6 +164,7 @@
     <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_state_object.h" />
     <ClInclude Include="..\..\AgilitySDK\include\dxgiformat.h" />
     <ClInclude Include="..\..\dxlatest.h" />
+    <ClInclude Include="..\Shared\ExampleHelpers.h" />
     <ClInclude Include="..\Shared\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

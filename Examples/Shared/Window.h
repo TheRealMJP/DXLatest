@@ -40,7 +40,7 @@ public:
     bool Borderless() const;
     void Destroy();
 
-    int32_t CreateMessageBox(const char* message, const char* title = nullptr, uint32_t type = MB_OK);
+    int32_t CreateMessageBox(const char* message, const char* title, uint32_t type = MB_OK);
 
     void RegisterMessageCallback(MsgFunction msgFunction, void* context);
 

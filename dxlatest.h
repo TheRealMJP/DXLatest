@@ -3,6 +3,8 @@
 #include <stdint.h>
 
 #include "AgilitySDK/include/d3d12.h"
+#include <dxgi.h>
+#include <dxgi1_6.h>
 
 #define DXL_STRUCT_BOILERPLATE(DXLStruct, D3D12Struct)  \
     DXLStruct() = default;                              \
