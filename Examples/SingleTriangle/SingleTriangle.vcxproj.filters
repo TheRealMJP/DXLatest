@@ -9,11 +9,17 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Shared">
+      <UniqueIdentifier>{ec502fa2-9236-4b94-ba0c-2d0efe3ae545}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SingleTriangle.cpp" />
     <ClCompile Include="..\..\dxlatest.cpp">
       <Filter>DXLatest</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\Window.cpp">
+      <Filter>Shared</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -82,6 +88,9 @@
     </ClInclude>
     <ClInclude Include="..\..\AgilitySDK\include\d3d12compiler.h">
       <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Window.h">
+      <Filter>Shared</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
