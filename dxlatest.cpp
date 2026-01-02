@@ -899,14 +899,34 @@ HRESULT DXLDevice::CreateCommandList1(uint32_t nodeMask, D3D12_COMMAND_LIST_TYPE
     return ToNative()->CreateCommandList1(nodeMask, type, flags, riid, outCommandList);
 }
 
-HRESULT DXLDevice::CreateGraphicsPipelineState(const D3D12_GRAPHICS_PIPELINE_STATE_DESC* desc, REFIID riid, void** outPipelineState)
+#if DXL_ENABLE_EXTENSIONS()
+
+DXLCommandQueue DXLDevice::CreateCommandQueue(D3D12_COMMAND_QUEUE_DESC desc)
 {
-    return ToNative()->CreateGraphicsPipelineState(desc, riid, outPipelineState);
+    DXLCommandQueue commandQueue;
+    ToNative()->CreateCommandQueue(&desc, DXL_PPV_ARGS(&commandQueue));
+    return commandQueue;
 }
 
-HRESULT DXLDevice::CreateComputePipelineState(const D3D12_COMPUTE_PIPELINE_STATE_DESC* desc, REFIID riid, void** outOipelineState)
+DXLCommandAllocator DXLDevice::CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type)
 {
-    return ToNative()->CreateComputePipelineState(desc, riid, outOipelineState);
+    DXLCommandAllocator commandAllocator;
+    ToNative()->CreateCommandAllocator(type, DXL_PPV_ARGS(&commandAllocator));
+    return commandAllocator;
+}
+
+DXLCommandList DXLDevice::CreateCommandList(D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags)
+{
+    DXLCommandList commandList;
+    ToNative()->CreateCommandList1(0, type, flags, DXL_PPV_ARGS(&commandList));
+    return commandList;
+}
+
+#endif // DXL_ENABLE_EXTENSIONS()
+
+HRESULT DXLDevice::CreateComputePipelineState(const D3D12_COMPUTE_PIPELINE_STATE_DESC* desc, REFIID riid, void** outPipelineState)
+{
+    return ToNative()->CreateComputePipelineState(desc, riid, outPipelineState);
 }
 
 HRESULT DXLDevice::CreatePipelineState(const D3D12_PIPELINE_STATE_STREAM_DESC* desc, REFIID riid, void** outPipelineState)
@@ -923,6 +943,76 @@ HRESULT DXLDevice::AddToStateObject(const D3D12_STATE_OBJECT_DESC* addition, DXL
 {
     return ToNative()->AddToStateObject(addition, stateObjectToGrowFrom, riid, outNewStateObject);
 }
+
+#if DXL_ENABLE_EXTENSIONS()
+
+DXLPipelineState DXLDevice::CreateComputePSO(D3D12_COMPUTE_PIPELINE_STATE_DESC desc)
+{
+    DXLPipelineState pso;
+    ToNative()->CreateComputePipelineState(&desc, DXL_PPV_ARGS(&pso));
+    return pso;
+}
+
+DXLPipelineState DXLDevice::CreateComputePSO(DXLRootSignature rootSignature, const void* byteCode, size_t byteCodeLength)
+{
+    return CreateComputePSO({ .pRootSignature = rootSignature, .CS = { byteCode, byteCodeLength } });
+}
+
+DXLPipelineState DXLDevice::CreateGraphicsPSO(D3D12_PIPELINE_STATE_STREAM_DESC desc)
+{
+    DXLPipelineState pso;
+    ToNative()->CreatePipelineState(&desc, DXL_PPV_ARGS(&pso));
+    return pso;
+}
+
+DXLPipelineState DXLDevice::CreateGraphicsPSO(DXL_SIMPLE_GRAPHICS_PSO_DESC desc)
+{
+    CD3DX12_PIPELINE_STATE_STREAM6 stateStream;
+    stateStream.pRootSignature = desc.RootSignature;
+    stateStream.PrimitiveTopologyType = desc.PrimitiveTopologyType;
+    stateStream.VS = desc.VertexShaderByteCode;
+    stateStream.PS = desc.PixelShaderByteCode;
+    stateStream.BlendState = CD3DX12_BLEND_DESC(desc.BlendState);
+    stateStream.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC2(desc.DepthStencilState);
+    stateStream.DSVFormat = desc.DepthStencilFormat;
+    stateStream.RasterizerState = CD3DX12_RASTERIZER_DESC2(desc.RasterizerState);
+    stateStream.RTVFormats = desc.RenderTargetFormats;
+
+    return CreateGraphicsPSO({ .SizeInBytes = sizeof(stateStream), .pPipelineStateSubobjectStream = &stateStream, });
+}
+
+DXLPipelineState DXLDevice::CreateGraphicsPSO(DXL_MESH_SHADER_GRAPHICS_PSO_DESC desc)
+{
+    CD3DX12_PIPELINE_STATE_STREAM6 stateStream;
+    stateStream.pRootSignature = desc.RootSignature;
+    stateStream.PrimitiveTopologyType = desc.PrimitiveTopologyType;
+    stateStream.AS = desc.AmplificationShaderByteCode;
+    stateStream.MS = desc.MeshShaderByteCode;
+    stateStream.PS = desc.PixelShaderByteCode;
+    stateStream.BlendState = CD3DX12_BLEND_DESC(desc.BlendState);
+    stateStream.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC2(desc.DepthStencilState);
+    stateStream.DSVFormat = desc.DepthStencilFormat;
+    stateStream.RasterizerState = CD3DX12_RASTERIZER_DESC2(desc.RasterizerState);
+    stateStream.RTVFormats = desc.RenderTargetFormats;
+
+    return CreateGraphicsPSO({ .SizeInBytes = sizeof(stateStream), .pPipelineStateSubobjectStream = &stateStream, });
+}
+
+DXLStateObject DXLDevice::CreateStateObject(D3D12_STATE_OBJECT_DESC desc)
+{
+    DXLStateObject stateObject;
+    ToNative()->CreateStateObject(&desc, DXL_PPV_ARGS(&stateObject));
+    return stateObject;
+}
+
+DXLStateObject DXLDevice::AddToStateObject(D3D12_STATE_OBJECT_DESC addition, DXLStateObject stateObjectToGrowFrom)
+{
+    DXLStateObject stateObject;
+    ToNative()->AddToStateObject(&addition, stateObjectToGrowFrom.ToNative(), DXL_PPV_ARGS(&stateObjectToGrowFrom));
+    return stateObject;
+}
+
+#endif // DXL_ENABLE_EXTENSIONS()
 
 HRESULT DXLDevice::CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_DESC* descriptorHeapDesc, REFIID riid, void** outHeap)
 {

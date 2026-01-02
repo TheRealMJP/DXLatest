@@ -453,6 +453,37 @@ public:
     HRESULT GetGlobalPriority(D3D12_COMMAND_QUEUE_GLOBAL_PRIORITY* outValue);
 };
 
+#if DXL_ENABLE_EXTENSIONS()
+
+struct DXL_SIMPLE_GRAPHICS_PSO_DESC
+{
+    DXLRootSignature RootSignature;
+    D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    D3D12_RASTERIZER_DESC2 RasterizerState = { };
+    D3D12_SHADER_BYTECODE VertexShaderByteCode = { };
+    D3D12_SHADER_BYTECODE PixelShaderByteCode = { };
+    D3D12_BLEND_DESC BlendState = { };
+    D3D12_DEPTH_STENCIL_DESC2 DepthStencilState = { };
+    DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_UNKNOWN;
+    D3D12_RT_FORMAT_ARRAY RenderTargetFormats = { };
+};
+
+struct DXL_MESH_SHADER_GRAPHICS_PSO_DESC
+{
+    DXLRootSignature RootSignature;
+    D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    D3D12_RASTERIZER_DESC2 RasterizerState = { };
+    D3D12_SHADER_BYTECODE AmplificationShaderByteCode = { };
+    D3D12_SHADER_BYTECODE MeshShaderByteCode = { };
+    D3D12_SHADER_BYTECODE PixelShaderByteCode = { };
+    D3D12_BLEND_DESC BlendState = { };
+    D3D12_DEPTH_STENCIL_DESC2 DepthStencilState = { };
+    DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_UNKNOWN;
+    D3D12_RT_FORMAT_ARRAY RenderTargetFormats = { };
+};
+
+#endif
+
 class DXLDevice : public DXLObject
 {
 
@@ -469,11 +500,26 @@ public:
     HRESULT CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type, REFIID riid, void** outCommandAllocator);
     HRESULT CreateCommandList1(uint32_t nodeMask, D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags, REFIID riid, void** outCommandList);
 
-    HRESULT CreateGraphicsPipelineState(const D3D12_GRAPHICS_PIPELINE_STATE_DESC* desc, REFIID riid, void** outPipelineState);
-    HRESULT CreateComputePipelineState(const D3D12_COMPUTE_PIPELINE_STATE_DESC* desc, REFIID riid, void** outOipelineState);
+#if DXL_ENABLE_EXTENSIONS()
+    DXLCommandQueue CreateCommandQueue(D3D12_COMMAND_QUEUE_DESC desc);
+    DXLCommandAllocator CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type);
+    DXLCommandList CreateCommandList(D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags);
+#endif
+
+    HRESULT CreateComputePipelineState(const D3D12_COMPUTE_PIPELINE_STATE_DESC* desc, REFIID riid, void** outPipelineState);
     HRESULT CreatePipelineState(const D3D12_PIPELINE_STATE_STREAM_DESC* desc, REFIID riid, void** outPipelineState);
     HRESULT CreateStateObject(const D3D12_STATE_OBJECT_DESC* desc, REFIID riid, void** outStateObject);
     HRESULT AddToStateObject(const D3D12_STATE_OBJECT_DESC* addition, DXLStateObject stateObjectToGrowFrom, REFIID riid, void** outNewStateObject);
+
+#if DXL_ENABLE_EXTENSIONS()
+    DXLPipelineState CreateComputePSO(D3D12_COMPUTE_PIPELINE_STATE_DESC desc);
+    DXLPipelineState CreateComputePSO(DXLRootSignature rootSignature, const void* byteCode, size_t byteCodeLength);
+    DXLPipelineState CreateGraphicsPSO(D3D12_PIPELINE_STATE_STREAM_DESC desc);
+    DXLPipelineState CreateGraphicsPSO(DXL_SIMPLE_GRAPHICS_PSO_DESC desc);
+    DXLPipelineState CreateGraphicsPSO(DXL_MESH_SHADER_GRAPHICS_PSO_DESC desc);
+    DXLStateObject CreateStateObject(D3D12_STATE_OBJECT_DESC desc);
+    DXLStateObject AddToStateObject(D3D12_STATE_OBJECT_DESC addition, DXLStateObject stateObjectToGrowFrom);
+#endif
 
     HRESULT CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_DESC* descriptorHeapDesc, REFIID riid, void** outHeap);
     uint32_t GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE descriptorHeapType);
@@ -696,8 +742,8 @@ struct CreateDeviceParams
 struct CreateDeviceResult
 {
     DXLDevice Device;
-    HRESULT hr = S_OK;
-    const char* failureReason = nullptr;
+    HRESULT Result = S_OK;
+    const char* FailureReason = nullptr;
 };
 
 CreateDeviceResult CreateDevice(CreateDeviceParams params);
