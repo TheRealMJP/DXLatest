@@ -1204,6 +1204,168 @@ HRESULT DXLDevice::SetBackgroundProcessingMode(D3D12_BACKGROUND_PROCESSING_MODE 
 
 #endif // DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
 
+// == DXLDebug ======================================================
+
+#if DXL_ENABLE_EXTENSIONS()
+
+DXLSwapChain DXLSwapChain::Create(DXGI_SWAP_CHAIN_DESC desc, DXLCommandQueue presentQueue)
+{
+    ComPtr<IDXGIFactory7> factory;
+    HRESULT hr = CreateDXGIFactory1(IID_PPV_ARGS(&factory));
+    if (FAILED(hr))
+        return DXLSwapChain();
+
+    ComPtr<IDXGISwapChain> tempSwapChain;
+    hr = factory->CreateSwapChain(presentQueue, &desc, &tempSwapChain);
+    if (FAILED(hr))
+        return DXLSwapChain();
+
+    DXLSwapChain swapChain;
+    tempSwapChain->QueryInterface(DXL_PPV_ARGS(&swapChain));
+
+    return swapChain;
+}
+
+#endif
+
+HRESULT DXLSwapChain::Present1(uint32_t syncInterval, uint32_t presentFlags, const DXGI_PRESENT_PARAMETERS* presentParameters)
+{
+    return ToNative()->Present1(syncInterval, presentFlags, presentParameters);
+}
+
+HRESULT DXLSwapChain::ResizeBuffers(uint32_t bufferCount, uint32_t width, uint32_t height, DXGI_FORMAT newFormat, UINT swapChainFlags)
+{
+    return ToNative()->ResizeBuffers(bufferCount, width, height, newFormat, swapChainFlags);
+}
+
+uint32_t DXLSwapChain::GetCurrentBackBufferIndex() const
+{
+    return ToNative()->GetCurrentBackBufferIndex();
+}
+
+HRESULT DXLSwapChain::GetBuffer(uint32_t buffer, REFIID riid, void** outSurface) const
+{
+    return ToNative()->GetBuffer(buffer, riid, outSurface);
+}
+
+HRESULT DXLSwapChain::GetDesc1(DXGI_SWAP_CHAIN_DESC1* outDesc)
+{
+    return ToNative()->GetDesc1(outDesc);
+}
+
+HRESULT DXLSwapChain::GetHwnd(HWND* outHwnd)
+{
+    return ToNative()->GetHwnd(outHwnd);
+}
+
+HRESULT DXLSwapChain::SetMaximumFrameLatency(uint32_t maxLatency)
+{
+    return ToNative()->SetMaximumFrameLatency(maxLatency);
+}
+
+HRESULT DXLSwapChain::GetMaximumFrameLatency(uint32_t* maxLatency)
+{
+    return ToNative()->GetMaximumFrameLatency(maxLatency);
+}
+
+HANDLE DXLSwapChain::GetFrameLatencyWaitableObject()
+{
+    return ToNative()->GetFrameLatencyWaitableObject();
+}
+
+HRESULT DXLSwapChain::CheckColorSpaceSupport(DXGI_COLOR_SPACE_TYPE colorSpace, uint32_t* colorSpaceSupport)
+{
+    return ToNative()->CheckColorSpaceSupport(colorSpace, colorSpaceSupport);
+}
+
+HRESULT DXLSwapChain::SetColorSpace1(DXGI_COLOR_SPACE_TYPE colorSpace)
+{
+    return ToNative()->SetColorSpace1(colorSpace);
+}
+
+HRESULT DXLSwapChain::SetHDRMetaData(DXGI_HDR_METADATA_TYPE type, uint32_t size, void* metaData)
+{
+    return ToNative()->SetHDRMetaData(type, size, metaData);
+}
+
+HRESULT DXLSwapChain::SetRotation(DXGI_MODE_ROTATION rotation)
+{
+    return ToNative()->SetRotation(rotation);
+}
+
+HRESULT DXLSwapChain::GetRotation(DXGI_MODE_ROTATION* outRotation)
+{
+    return ToNative()->GetRotation(outRotation);
+}
+
+HRESULT DXLSwapChain::GetContainingOutput(IDXGIOutput** outOutput)
+{
+    return ToNative()->GetContainingOutput(outOutput);
+}
+
+HRESULT DXLSwapChain::GetFrameStatistics(DXGI_FRAME_STATISTICS* outStats)
+{
+    return ToNative()->GetFrameStatistics(outStats);
+}
+
+HRESULT DXLSwapChain::GetLastPresentCount(uint32_t* outLastPresentCount)
+{
+    return ToNative()->GetLastPresentCount(outLastPresentCount);
+}
+
+#if DXL_ENABLE_EXTENSIONS()
+
+DXLResource DXLSwapChain::GetBuffer(uint32_t bufferIndex) const
+{
+    DXLResource resource;
+    ToNative()->GetBuffer(bufferIndex, DXL_PPV_ARGS(&resource));
+    return resource;
+}
+
+DXGI_SWAP_CHAIN_DESC1 DXLSwapChain::GetDesc() const
+{
+    DXGI_SWAP_CHAIN_DESC1 desc = { };
+    ToNative()->GetDesc1(&desc);
+    return desc;
+}
+
+HWND DXLSwapChain::GetHwnd() const
+{
+    HWND hwnd = nullptr;
+    ToNative()->GetHwnd(&hwnd);
+    return hwnd;
+}
+
+uint32_t DXLSwapChain::GetMaximumFrameLatency()
+{
+    uint32_t latency = 0;
+    ToNative()->GetMaximumFrameLatency(&latency);
+    return latency;
+}
+
+DXGI_FRAME_STATISTICS DXLSwapChain::GetFrameStatistics()
+{
+    DXGI_FRAME_STATISTICS stats = { };
+    ToNative()->GetFrameStatistics(&stats);
+    return stats;
+}
+
+uint32_t DXLSwapChain::GetLastPresentCount()
+{
+    uint32_t presentCount = 0;
+    ToNative()->GetLastPresentCount(&presentCount);
+    return presentCount;
+}
+
+DXGI_MODE_ROTATION DXLSwapChain::GetRotation()
+{
+    DXGI_MODE_ROTATION rotation = DXGI_MODE_ROTATION_UNSPECIFIED;
+    ToNative()->GetRotation(&rotation);
+    return rotation;
+}
+
+#endif // DXL_ENABLE_EXTENSIONS()
+
 #if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
 
 // == DXLDebug ======================================================

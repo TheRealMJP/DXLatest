@@ -636,6 +636,54 @@ public:
 #endif
 };
 
+class DXLSwapChain : public DXLBase
+{
+
+public:
+
+    DXL_INTERFACE_BOILERPLATE(DXLSwapChain, IDXGISwapChain4);
+
+#if DXL_ENABLE_EXTENSIONS()
+    static DXLSwapChain Create(DXGI_SWAP_CHAIN_DESC desc, DXLCommandQueue presentQueue);
+#endif
+
+    HRESULT Present1(uint32_t syncInterval, uint32_t presentFlags, const DXGI_PRESENT_PARAMETERS* presentParameters);
+
+    HRESULT ResizeBuffers(uint32_t bufferCount, uint32_t width, uint32_t height, DXGI_FORMAT newFormat, UINT swapChainFlags);
+
+    uint32_t GetCurrentBackBufferIndex() const;
+    HRESULT GetBuffer(uint32_t buffer, REFIID riid, void** outSurface) const;
+    HRESULT GetDesc1(DXGI_SWAP_CHAIN_DESC1* outDesc);
+    HRESULT GetHwnd(HWND* outHwnd);
+
+    HRESULT SetMaximumFrameLatency(uint32_t maxLatency);
+    HRESULT GetMaximumFrameLatency(uint32_t* maxLatency);
+    HANDLE GetFrameLatencyWaitableObject();
+
+    HRESULT CheckColorSpaceSupport(DXGI_COLOR_SPACE_TYPE colorSpace, uint32_t* colorSpaceSupport);
+    HRESULT SetColorSpace1(DXGI_COLOR_SPACE_TYPE colorSpace);
+
+    HRESULT SetHDRMetaData(DXGI_HDR_METADATA_TYPE type, uint32_t size, void* metaData);
+
+    HRESULT SetRotation(DXGI_MODE_ROTATION rotation);
+    HRESULT GetRotation(DXGI_MODE_ROTATION* outRotation);
+
+    HRESULT GetContainingOutput(IDXGIOutput** outOutput);
+
+    HRESULT GetFrameStatistics(DXGI_FRAME_STATISTICS* outStats);
+    HRESULT GetLastPresentCount(uint32_t* outLastPresentCount);
+
+#if DXL_ENABLE_EXTENSIONS()
+    DXLResource GetBuffer(uint32_t bufferIndex) const;
+    DXGI_SWAP_CHAIN_DESC1 GetDesc() const;
+    HWND GetHwnd() const;
+    uint32_t GetMaximumFrameLatency();
+    DXGI_FRAME_STATISTICS GetFrameStatistics();
+    uint32_t GetLastPresentCount();
+    DXGI_MODE_ROTATION GetRotation();
+#endif
+};
+
 #if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
 
 class DXLDebug : public DXLBase
