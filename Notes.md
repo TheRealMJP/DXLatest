@@ -47,6 +47,8 @@ Possible Wrapper Design Directions
 - Doesn't work with IID_PPV_ARGS, extensions (or signature changes) needed for returning wrapper types
 
 * Can we use this in a COM smart pointer?
+    * Looks like that's a no, ComPtr is templated on the interface type and expects to have a native pointer
+    * Could make our own, or have an option to build automatic ref counting into our wrapper?
 * Can we allow boolean operator and/or checking against nullptr without ambiguous calls?
     * Compiler won't let you hide one overload a method while exposing another, so you can't have a ToNative function that's hidden
     * Looks bool checks are fine, but you need to be consistent on const vs non-const for the operators

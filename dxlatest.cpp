@@ -1252,7 +1252,7 @@ DXLDevice CreateDevice(CreateDeviceParams params)
     if (params.EnableDebugLayer)
     {
         ComPtr<ID3D12Debug1> d3d12debug;
-        if (SUCCEEDED(deviceFactory->GetConfigurationInterface(CLSID_D3D12Debug, IID_PPV_ARGS(&d3d12debug))))
+        if (SUCCEEDED(deviceFactory->GetConfigurationInterface(CLSID_D3D12Debug, DXL_PPV_ARGS(d3d12debug.GetAddressOf()))))
             d3d12debug->EnableDebugLayer();
 
         if (params.EnableGPUBasedValidation)
@@ -1263,7 +1263,7 @@ DXLDevice CreateDevice(CreateDeviceParams params)
     DXLDevice device;
     deviceFactory->CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, DXL_PPV_ARGS(&device));
 
-    return DXLDevice();
+    return device;
 }
 
 void Release(IUnknown*& unknown)
