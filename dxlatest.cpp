@@ -1278,25 +1278,27 @@ bool DXLDebugInfoQueue::GetMuteDebugOutput()
 
 #if DXL_ENABLE_EXTENSIONS()
 
-DXLDevice CreateDevice(CreateDeviceParams params)
+CreateDeviceResult CreateDevice(CreateDeviceParams params)
 {
     ComPtr<IDXGIFactory7> factory;
-    if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))))
-        return DXLDevice();
+    HRESULT hr = CreateDXGIFactory1(IID_PPV_ARGS(&factory));
+    if (FAILED(hr))
+        return { DXLDevice(), hr, "Failed to create DXGI factory" };
 
     ComPtr<IDXGIAdapter4> adapter;
-    HRESULT hr = factory->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&adapter));
-
+    hr = factory->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&adapter));
     if (FAILED(hr))
-        return DXLDevice();
+        return { DXLDevice(), hr, "Failed to enumerage a DXGI adapter" };
 
     ComPtr<ID3D12SDKConfiguration1> sdkConfig;
-    if (FAILED(D3D12GetInterface(CLSID_D3D12SDKConfiguration, IID_PPV_ARGS(&sdkConfig))))
-        return DXLDevice();
+    hr = D3D12GetInterface(CLSID_D3D12SDKConfiguration, IID_PPV_ARGS(&sdkConfig));
+    if (FAILED(hr))
+        return { DXLDevice(), hr, "Failed to aquire the D3D12 SDK configuration interface" };
 
     ComPtr<ID3D12DeviceFactory> deviceFactory;
-    if (FAILED(sdkConfig->CreateDeviceFactory(D3D12_SDK_VERSION, params.AgilitySDKPath, IID_PPV_ARGS(&deviceFactory))))
-        return DXLDevice();
+    hr = sdkConfig->CreateDeviceFactory(D3D12_SDK_VERSION, params.AgilitySDKPath, IID_PPV_ARGS(&deviceFactory));
+    if (FAILED(hr))
+        return { DXLDevice(), hr, "Failed to create a D3D12 device factory" };
 
 #if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
     if (params.EnableDebugLayer)
@@ -1310,10 +1312,17 @@ DXLDevice CreateDevice(CreateDeviceParams params)
     }
 #endif
 
-    DXLDevice device;
-    deviceFactory->CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, DXL_PPV_ARGS(&device));
+    ComPtr<ID3D12Device14> device;
+    hr = deviceFactory->CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device));
+    if (FAILED(hr))
+        return { DXLDevice(), hr, "Failed to create D3D12 device from the device factory" };
 
-    return device;
+    D3D12_FEATURE_DATA_D3D12_OPTIONS12 options12 = { };
+    device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options12, sizeof(options12));
+    if(options12.EnhancedBarriersSupported == false)
+        return { DXLDevice(), E_FAIL, "The selected GPU does not support enhanced barriers, which is required for DXLatest" };
+
+    return { device.Get(), S_OK, nullptr };
 }
 
 void Release(IUnknown*& unknown)

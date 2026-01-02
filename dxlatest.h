@@ -693,7 +693,14 @@ struct CreateDeviceParams
     D3D12MessageFunc DebugLayerCallbackFunction = nullptr;
 };
 
-DXLDevice CreateDevice(CreateDeviceParams params);
+struct CreateDeviceResult
+{
+    DXLDevice Device;
+    HRESULT hr = S_OK;
+    const char* failureReason = nullptr;
+};
+
+CreateDeviceResult CreateDevice(CreateDeviceParams params);
 
 void Release(IUnknown*& unknown);
 void Release(DXLBase& base);
