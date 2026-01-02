@@ -17,7 +17,25 @@ namespace dxl
 
 using Microsoft::WRL::ComPtr;
 
-void PrintAssertMessage(const char* condition, const char* msg, const char* file, const int32_t line)
+static void PrintMessageBuffer(const char* msg)
+{
+    printf("%s\n", msg);
+    OutputDebugStringA(msg);
+}
+
+static void PrintMessage(const char* msg, ...)
+{
+    char messageBuffer[1024] = { };
+
+    va_list args;
+    va_start(args, msg);
+    vsnprintf_s(messageBuffer, 1024, 1024, msg, args);
+    va_end(args);
+
+    PrintMessageBuffer(messageBuffer);
+}
+
+static void PrintAssertMessage(const char* condition, const char* msg, const char* file, const int32_t line)
 {
     const uint64_t BufferSize = 2048;
     char buffer[BufferSize] = { };
@@ -31,10 +49,10 @@ void PrintAssertMessage(const char* condition, const char* msg, const char* file
 
     sprintf_s(buffer, BufferSize, "%s\n", buffer);
 
-    OutputDebugStringA(buffer);
+    PrintMessageBuffer(buffer);
 }
 
-void AssertHandler(const char* condition, const char* file, const int32_t line, const char* msg, ...)
+static void AssertHandler(const char* condition, const char* file, const int32_t line, const char* msg, ...)
 {
     const char* message = nullptr;
     if (msg != nullptr)
@@ -1290,6 +1308,10 @@ CreateDeviceResult CreateDevice(CreateDeviceParams params)
     if (FAILED(hr))
         return { DXLDevice(), hr, "Failed to enumerage a DXGI adapter" };
 
+    DXGI_ADAPTER_DESC1 desc = { };
+    adapter->GetDesc1(&desc);
+    PrintMessage("Creating D3D12 device on adapter '%ls'", desc.Description);
+
     ComPtr<ID3D12SDKConfiguration1> sdkConfig;
     hr = D3D12GetInterface(CLSID_D3D12SDKConfiguration, IID_PPV_ARGS(&sdkConfig));
     if (FAILED(hr))
@@ -1305,7 +1327,10 @@ CreateDeviceResult CreateDevice(CreateDeviceParams params)
     {
         ComPtr<ID3D12Debug1> d3d12debug;
         if (SUCCEEDED(deviceFactory->GetConfigurationInterface(CLSID_D3D12Debug, DXL_PPV_ARGS(d3d12debug.GetAddressOf()))))
+        {
             d3d12debug->EnableDebugLayer();
+            PrintMessage("Enabled D3D12 debug layer");
+        }
 
         if (params.EnableGPUBasedValidation)
             d3d12debug->SetEnableGPUBasedValidation(true);
