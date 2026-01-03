@@ -138,6 +138,20 @@ void Window::GetClientArea(int32_t& clientX, int32_t& clientY) const
     clientY = clientRect.bottom;
 }
 
+int32_t Window::GetClientWidth() const
+{
+    int32_t width, height;
+    GetClientArea(width, height);
+    return width;
+}
+
+int32_t Window::GetClientHeight() const
+{
+    int32_t width, height;
+    GetClientArea(width, height);
+    return height;
+}
+
 void Window::SetWindowTitle(const char* title)
 {
     SetWindowText(hwnd, title);

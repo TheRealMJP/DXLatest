@@ -1600,6 +1600,7 @@ CreateDeviceResult CreateDevice(CreateDeviceParams params)
     if(options12.EnhancedBarriersSupported == false)
         return { DXLDevice(), E_FAIL, "The selected GPU does not support enhanced barriers, which is required for DXLatest" };
 
+    device->AddRef();
     return { device.Get(), S_OK, nullptr };
 }
 

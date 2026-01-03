@@ -35,6 +35,8 @@ public:
     void ShowWindow(bool show = true);
     void SetClientArea(int32_t clientX, int32_t clientY);
     void GetClientArea(int32_t& clientX, int32_t& clientY) const;
+    int32_t GetClientWidth() const;
+    int32_t GetClientHeight() const;
     void SetWindowTitle(const char* title);
     void SetBorderless(bool borderless);
     bool Borderless() const;

@@ -505,7 +505,7 @@ public:
 #if DXL_ENABLE_EXTENSIONS()
     DXLCommandQueue CreateCommandQueue(D3D12_COMMAND_QUEUE_DESC desc);
     DXLCommandAllocator CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type);
-    DXLCommandList CreateCommandList(D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags);
+    DXLCommandList CreateCommandList(D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags = D3D12_COMMAND_LIST_FLAG_NONE);
 #endif
 
     HRESULT CreateComputePipelineState(const D3D12_COMPUTE_PIPELINE_STATE_DESC* desc, REFIID riid, void** outPipelineState);
