@@ -7,7 +7,7 @@ struct VSOutput
 VSOutput VSMain(uint vertexID : SV_VertexID)
 {
     float posX = -0.5f + vertexID * 0.5f;
-    float posY = -0.25f + (vertexID % 2);
+    float posY = -0.5f + (vertexID % 2);
 
     VSOutput output;
     output.Position = float4(posX, posY, 1.0f, 1.0f);

@@ -126,7 +126,7 @@ namespace helpers
 
 static D3D12_BLEND_DESC blendStateDescs[] =
 {
-    // BlendState::Disabled
+    // BlendState::Opaque
     {
         .IndependentBlendEnable = false,
         .RenderTarget =
@@ -1174,7 +1174,7 @@ D3D12_COMMAND_QUEUE_DESC DXLCommandQueue::GetDesc() const
     return ToNative()->GetDesc();
 }
 
-HRESULT DXLCommandQueue::SetProcessPriority(D3D12_COMMAND_QUEUE_PROCESS_PRIORITY priority)
+/*HRESULT DXLCommandQueue::SetProcessPriority(D3D12_COMMAND_QUEUE_PROCESS_PRIORITY priority)
 {
     return ToNative()->SetProcessPriority(priority);
 }
@@ -1192,7 +1192,7 @@ HRESULT DXLCommandQueue::SetGlobalPriority(D3D12_COMMAND_QUEUE_GLOBAL_PRIORITY p
 HRESULT DXLCommandQueue::GetGlobalPriority(D3D12_COMMAND_QUEUE_GLOBAL_PRIORITY* outValue)
 {
     return ToNative()->GetGlobalPriority(outValue);
-}
+}*/
 
 // == DXLDevice ======================================================
 

@@ -476,7 +476,7 @@ class DXLCommandQueue : public DXLPageable
 {
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLCommandQueue, ID3D12CommandQueue1);
+    DXL_INTERFACE_BOILERPLATE(DXLCommandQueue, ID3D12CommandQueue);
 
     void UpdateTileMappings(
         DXLResource resource,
@@ -511,11 +511,11 @@ public:
 
     D3D12_COMMAND_QUEUE_DESC GetDesc() const;
 
-    HRESULT SetProcessPriority(D3D12_COMMAND_QUEUE_PROCESS_PRIORITY priority);
+    /*HRESULT SetProcessPriority(D3D12_COMMAND_QUEUE_PROCESS_PRIORITY priority);
     HRESULT GetProcessPriority(D3D12_COMMAND_QUEUE_PROCESS_PRIORITY* outValue);
 
     HRESULT SetGlobalPriority(D3D12_COMMAND_QUEUE_GLOBAL_PRIORITY priority);
-    HRESULT GetGlobalPriority(D3D12_COMMAND_QUEUE_GLOBAL_PRIORITY* outValue);
+    HRESULT GetGlobalPriority(D3D12_COMMAND_QUEUE_GLOBAL_PRIORITY* outValue);*/
 };
 
 #if DXL_ENABLE_EXTENSIONS()
@@ -524,11 +524,11 @@ struct DXL_SIMPLE_GRAPHICS_PSO_DESC
 {
     DXLRootSignature RootSignature;
     D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    D3D12_RASTERIZER_DESC2 RasterizerState = { .FillMode = D3D12_FILL_MODE_SOLID, .CullMode = D3D12_CULL_MODE_NONE, .DepthClipEnable = true };
+    D3D12_RASTERIZER_DESC2 RasterizerState = helpers::RasterizerStateDesc(helpers::RasterizerState::NoCull);
     D3D12_SHADER_BYTECODE VertexShaderByteCode = { };
     D3D12_SHADER_BYTECODE PixelShaderByteCode = { };
-    D3D12_BLEND_DESC BlendState = { };
-    D3D12_DEPTH_STENCIL_DESC2 DepthStencilState = { };
+    D3D12_BLEND_DESC BlendState = helpers::BlendStateDesc(helpers::BlendState::Opaque);
+    D3D12_DEPTH_STENCIL_DESC2 DepthStencilState = helpers::DepthStateDesc(helpers::DepthState::Disabled);
     DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_UNKNOWN;
     D3D12_RT_FORMAT_ARRAY RenderTargetFormats = { };
 };
@@ -537,12 +537,12 @@ struct DXL_MESH_SHADER_GRAPHICS_PSO_DESC
 {
     DXLRootSignature RootSignature;
     D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    D3D12_RASTERIZER_DESC2 RasterizerState = { };
+    D3D12_RASTERIZER_DESC2 RasterizerState = helpers::RasterizerStateDesc(helpers::RasterizerState::NoCull);
     D3D12_SHADER_BYTECODE AmplificationShaderByteCode = { };
     D3D12_SHADER_BYTECODE MeshShaderByteCode = { };
     D3D12_SHADER_BYTECODE PixelShaderByteCode = { };
-    D3D12_BLEND_DESC BlendState = { };
-    D3D12_DEPTH_STENCIL_DESC2 DepthStencilState = { };
+    D3D12_BLEND_DESC BlendState = helpers::BlendStateDesc(helpers::BlendState::Opaque);
+    D3D12_DEPTH_STENCIL_DESC2 DepthStencilState = helpers::DepthStateDesc(helpers::DepthState::Disabled);
     DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_UNKNOWN;
     D3D12_RT_FORMAT_ARRAY RenderTargetFormats = { };
 };

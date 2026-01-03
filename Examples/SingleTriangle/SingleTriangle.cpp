@@ -158,7 +158,7 @@ static void Render()
         D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[1] = { swapChainRTVs[backBufferIndex] };
         commandList->OMSetRenderTargets(1, rtvHandles, false, nullptr);
 
-        const float clearColor[4] = { 0.1f, 0.9f, 0.1f, 1.0f };
+        const float clearColor[4] = { 0.2f, 0.3f, 0.7f, 1.0f };
         commandList->ClearRenderTargetView(rtvHandles[0], clearColor, 0, nullptr);
 
         commandList->RSSetViewportAndScissor(swapChainWidth, swapChainHeight);
