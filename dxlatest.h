@@ -21,6 +21,57 @@
 namespace dxl
 {
 
+#if DXL_ENABLE_EXTENSIONS()
+
+namespace helpers
+{
+
+enum class BlendState : uint32_t
+{
+    Opaque = 0,
+    Additive,
+    AlphaBlend,
+    PreMultiplied,
+    NoColorWrites,
+    PreMultipliedRGB,
+
+    NumValues
+};
+
+enum class RasterizerState : uint32_t
+{
+    NoCull = 0,
+    NoCullNoZClip,
+    BackFaceCull,
+    BackFaceCullNoZClip,
+    FrontFaceCull,
+    Wireframe,
+
+    NumValues
+};
+
+enum class DepthState : uint32_t
+{
+    Disabled = 0,
+    Enabled,
+    Reversed,
+    WritesEnabled,
+    ReversedWritesEnabled,
+    Equal,
+    DepthFail,
+    DepthFailReversed,
+
+    NumValues
+};
+
+D3D12_BLEND_DESC BlendStateDesc(BlendState blendState);
+D3D12_RASTERIZER_DESC2 RasterizerStateDesc(RasterizerState rasterizerState);
+D3D12_DEPTH_STENCIL_DESC2 DepthStateDesc(DepthState depthState);
+
+} // namespace helpers
+
+#endif // DXL_ENABLE_EXTENSIONS()
+
 #define DXL_INTERFACE_BOILERPLATE(DXLClass, D3D12Interface) \
     DXLClass() = default;   \
     DXLClass(D3D12Interface* d3d12Interface) { nativeInterface = d3d12Interface; }   \
@@ -312,6 +363,9 @@ public:
     void RSSetViewports(uint32_t numViewports, const D3D12_VIEWPORT* viewports);
     void RSSetScissorRects(uint32_t numRects, const D3D12_RECT* rects);
     void RSSetDepthBias(float depthBias, float depthBiasClamp, float slopeScaledDepthBias);
+#if DXL_ENABLE_EXTENSIONS()
+    void RSSetViewportAndScissor(uint32_t width, uint32_t height);
+#endif
 
     void RSSetShadingRate(D3D12_SHADING_RATE baseShadingRate, const D3D12_SHADING_RATE_COMBINER* combiners);
     void RSSetShadingRateImage(DXLResource shadingRateImage);

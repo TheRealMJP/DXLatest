@@ -10,6 +10,8 @@
 #pragma comment(lib, "DXGI.lib")
 #endif
 
+#define DXL_ARRAY_SIZE(x) ((sizeof(x) / sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
+
 namespace dxl
 {
 
@@ -97,7 +99,8 @@ struct WideStringConverter
             if (str[0] != 0)
             {
                 const int32_t numChars = MultiByteToWideChar(CP_UTF8, 0, str, -1, nullptr, 0);
-                if (numChars > (sizeof(fixedStorage) / sizeof(wchar_t)))
+                if (numChars > (DXL_ARRAY_SIZE(fixedStorage)))
+
                 {
                     allocatedString = new wchar_t[numChars];
                     wideString = allocatedString;
@@ -117,6 +120,247 @@ struct WideStringConverter
         }
     }
 };
+
+namespace helpers
+{
+
+static D3D12_BLEND_DESC blendStateDescs[] =
+{
+    // BlendState::Disabled
+    {
+        .IndependentBlendEnable = false,
+        .RenderTarget =
+        {
+            {
+                .BlendEnable = false,
+                .SrcBlend = D3D12_BLEND_SRC_ALPHA,
+                .DestBlend = D3D12_BLEND_INV_SRC_ALPHA,
+                .BlendOp = D3D12_BLEND_OP_ADD,
+                .SrcBlendAlpha = D3D12_BLEND_ONE,
+                .DestBlendAlpha = D3D12_BLEND_ONE,
+                .BlendOpAlpha = D3D12_BLEND_OP_ADD,
+                .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
+            }
+        }
+    },
+
+    // BlendState::Additive
+    {
+        .IndependentBlendEnable = false,
+        .RenderTarget =
+        {
+            {
+                .BlendEnable = true,
+                .SrcBlend = D3D12_BLEND_ONE,
+                .DestBlend = D3D12_BLEND_ONE,
+                .BlendOp = D3D12_BLEND_OP_ADD,
+                .SrcBlendAlpha = D3D12_BLEND_ONE,
+                .DestBlendAlpha = D3D12_BLEND_ONE,
+                .BlendOpAlpha = D3D12_BLEND_OP_ADD,
+                .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
+            }
+        }
+    },
+
+    // BlendState::AlphaBlend
+    {
+        .IndependentBlendEnable = false,
+        .RenderTarget =
+        {
+            {
+                .BlendEnable = true,
+                .SrcBlend = D3D12_BLEND_SRC_ALPHA,
+                .DestBlend = D3D12_BLEND_INV_SRC_ALPHA,
+                .BlendOp = D3D12_BLEND_OP_ADD,
+                .SrcBlendAlpha = D3D12_BLEND_ONE,
+                .DestBlendAlpha = D3D12_BLEND_ONE,
+                .BlendOpAlpha = D3D12_BLEND_OP_ADD,
+                .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
+            }
+        }
+    },
+
+    // BlendState::PreMultiplied
+    {
+        .IndependentBlendEnable = false,
+        .RenderTarget =
+        {
+            {
+                .BlendEnable = false,
+                .SrcBlend = D3D12_BLEND_ONE,
+                .DestBlend = D3D12_BLEND_INV_SRC_ALPHA,
+                .BlendOp = D3D12_BLEND_OP_ADD,
+                .SrcBlendAlpha = D3D12_BLEND_ONE,
+                .DestBlendAlpha = D3D12_BLEND_ONE,
+                .BlendOpAlpha = D3D12_BLEND_OP_ADD,
+                .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
+            }
+        }
+    },
+
+    // BlendState::NoColorWrites
+    {
+        .IndependentBlendEnable = false,
+        .RenderTarget =
+        {
+            {
+                .BlendEnable = false,
+                .SrcBlend = D3D12_BLEND_SRC_ALPHA,
+                .DestBlend = D3D12_BLEND_INV_SRC_ALPHA,
+                .BlendOp = D3D12_BLEND_OP_ADD,
+                .SrcBlendAlpha = D3D12_BLEND_ONE,
+                .DestBlendAlpha = D3D12_BLEND_ONE,
+                .BlendOpAlpha = D3D12_BLEND_OP_ADD,
+                .RenderTargetWriteMask = 0,
+            }
+        }
+    },
+
+    // BlendState::PreMultipliedRGB
+    {
+        .IndependentBlendEnable = false,
+        .RenderTarget =
+        {
+            {
+                .BlendEnable = true,
+                .SrcBlend = D3D12_BLEND_ONE,
+                .DestBlend = D3D12_BLEND_INV_SRC1_COLOR,
+                .BlendOp = D3D12_BLEND_OP_ADD,
+                .SrcBlendAlpha = D3D12_BLEND_ONE,
+                .DestBlendAlpha = D3D12_BLEND_ONE,
+                .BlendOpAlpha = D3D12_BLEND_OP_ADD,
+                .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
+            }
+        }
+    }
+};
+static_assert(DXL_ARRAY_SIZE(blendStateDescs) == uint32_t(BlendState::NumValues));
+
+static D3D12_RASTERIZER_DESC2 rasterizerStateDescs[] =
+{
+    // RasterizerState::NoCull
+    {
+        .FillMode = D3D12_FILL_MODE_SOLID,
+        .CullMode = D3D12_CULL_MODE_NONE,
+        .DepthClipEnable = true,
+    },
+
+    // RasterizerState::NoCullNoZClip
+    {
+        .FillMode = D3D12_FILL_MODE_SOLID,
+        .CullMode = D3D12_CULL_MODE_NONE,
+        .DepthClipEnable = false,
+    },
+
+    // RasterizerState::FrontFaceCull
+    {
+        .FillMode = D3D12_FILL_MODE_SOLID,
+        .CullMode = D3D12_CULL_MODE_FRONT,
+        .DepthClipEnable = true,
+    },
+
+    // RasterizerState::BackFaceCull
+    {
+        .FillMode = D3D12_FILL_MODE_SOLID,
+        .CullMode = D3D12_CULL_MODE_BACK,
+        .DepthClipEnable = true,
+    },
+
+    // RasterizerState::BackFaceCullNoZClip
+    {
+        .FillMode = D3D12_FILL_MODE_SOLID,
+        .CullMode = D3D12_CULL_MODE_BACK,
+        .DepthClipEnable = false,
+    },
+
+    // RasterizerState::Wireframe
+    {
+        .FillMode = D3D12_FILL_MODE_WIREFRAME,
+        .CullMode = D3D12_CULL_MODE_NONE,
+        .DepthClipEnable = true,
+    },
+};
+static_assert(DXL_ARRAY_SIZE(rasterizerStateDescs) == uint32_t(RasterizerState::NumValues));
+
+static D3D12_DEPTH_STENCIL_DESC2 depthStateDescs[] =
+{
+    // DepthState::Disabled
+    {
+        .DepthEnable = false,
+        .DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO,
+        .DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL,
+    },
+
+    // DepthState::Enabled
+    {
+        .DepthEnable = true,
+        .DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO,
+        .DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL,
+    },
+
+    // DepthState::Reversed
+    {
+        .DepthEnable = true,
+        .DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO,
+        .DepthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL,
+    },
+
+    // DepthState::WritesEnabled
+    {
+        .DepthEnable = true,
+        .DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL,
+        .DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL,
+    },
+
+    // DepthState::ReversedWritesEnabled
+    {
+        .DepthEnable = true,
+        .DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL,
+        .DepthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL,
+    },
+
+    // DepthState::Equal
+    {
+        .DepthEnable = true,
+        .DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO,
+        .DepthFunc = D3D12_COMPARISON_FUNC_EQUAL,
+    },
+
+    // DepthState::DepthFail
+    {
+        .DepthEnable = true,
+        .DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO,
+        .DepthFunc = D3D12_COMPARISON_FUNC_GREATER,
+    },
+
+    // DepthState::DepthFailReversed
+    {
+        .DepthEnable = true,
+        .DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO,
+        .DepthFunc = D3D12_COMPARISON_FUNC_LESS,
+    },
+};
+static_assert(DXL_ARRAY_SIZE(depthStateDescs) == uint32_t(DepthState::NumValues));
+
+D3D12_BLEND_DESC BlendStateDesc(BlendState blendState)
+{
+    DXL_ASSERT(uint32_t(blendState) < uint32_t(BlendState::NumValues), "Invalid BlendState %u", uint32_t(blendState));
+    return blendStateDescs[uint32_t(blendState)];
+}
+
+D3D12_RASTERIZER_DESC2 RasterizerStateDesc(RasterizerState rasterizerState)
+{
+    DXL_ASSERT(uint32_t(rasterizerState) < uint32_t(RasterizerState::NumValues), "Invalid RasterizerState %u", uint32_t(rasterizerState));
+    return rasterizerStateDescs[uint32_t(rasterizerState)];
+}
+
+D3D12_DEPTH_STENCIL_DESC2 DepthStateDesc(DepthState depthState)
+{
+    DXL_ASSERT(uint32_t(depthState) < uint32_t(DepthState::NumValues), "Invalid DepthState %u", uint32_t(depthState));
+    return depthStateDescs[uint32_t(depthState)];
+}
+
+} // namespace helpers
 
 // == DXLBase ======================================================
 
@@ -608,6 +852,34 @@ void DXLCommandList::RSSetDepthBias(float depthBias, float depthBiasClamp, float
 {
     ToNative()->RSSetDepthBias(depthBias, depthBiasClamp, slopeScaledDepthBias);
 }
+
+#if DXL_ENABLE_EXTENSIONS()
+
+void DXLCommandList::RSSetViewportAndScissor(uint32_t width, uint32_t height)
+{
+    D3D12_VIEWPORT viewport =
+    {
+        .TopLeftX = 0.0f,
+        .TopLeftY = 0.0f,
+        .Width = float(width),
+        .Height = float(height),
+        .MinDepth = 0.0f,
+        .MaxDepth = 1.0f,
+    };
+
+    D3D12_RECT scissorRect =
+    {
+        scissorRect.left = 0,
+        scissorRect.top = 0,
+        scissorRect.right = uint32_t(width),
+        scissorRect.bottom = uint32_t(height),
+    };
+
+    ToNative()->RSSetViewports(1, &viewport);
+    ToNative()->RSSetScissorRects(1, &scissorRect);
+}
+
+#endif
 
 void DXLCommandList::RSSetShadingRate(D3D12_SHADING_RATE baseShadingRate, const D3D12_SHADING_RATE_COMBINER* combiners)
 {

@@ -161,6 +161,8 @@ static void Render()
         const float clearColor[4] = { 0.1f, 0.9f, 0.1f, 1.0f };
         commandList->ClearRenderTargetView(rtvHandles[0], clearColor, 0, nullptr);
 
+        commandList->RSSetViewportAndScissor(swapChainWidth, swapChainHeight);
+
         commandList->SetPipelineState(pso);
         commandList->SetGraphicsRootSignature(rootSignature);
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
