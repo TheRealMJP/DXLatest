@@ -23,6 +23,15 @@ namespace dxl
 
 #if DXL_ENABLE_EXTENSIONS()
 
+template<typename T> struct Span
+{
+    uint32_t Count = 0;
+    T* Items = nullptr;
+
+    Span() = default;
+    Span(uint32_t count, T* items) : Count(count), Items(items) { }
+};
+
 namespace helpers
 {
 
@@ -599,6 +608,8 @@ public:
 #if DXL_ENABLE_EXTENSIONS()
     DXLDescriptorHeap CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc);
     DXLRootSignature CreateRootSignature(D3D12_ROOT_SIGNATURE_DESC2 rootSignatureDesc);
+    DXLQueryHeap CreateQueryHeap(D3D12_QUERY_HEAP_DESC desc);
+    DXLCommandSignature CreateCommandSignature(D3D12_COMMAND_SIGNATURE_DESC desc, DXLRootSignature rootSignature);
 #endif
 
     void CreateConstantBufferView(const D3D12_CONSTANT_BUFFER_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
@@ -649,7 +660,7 @@ public:
     );
 
     HRESULT CreatePlacedResource2(
-        ID3D12Heap* heap,
+        DXLHeap heap,
         uint64_t heapOffset,
         const D3D12_RESOURCE_DESC1* desc,
         D3D12_BARRIER_LAYOUT initialLayout,
@@ -670,6 +681,35 @@ public:
         REFIID riid,
         void** outResource
     );
+
+#if DXL_ENABLE_EXTENSIONS()
+    DXLHeap CreateHeap(D3D12_HEAP_DESC desc);
+
+    DXLResource CreateCommittedResource(
+        D3D12_HEAP_PROPERTIES heapProperties,
+        D3D12_HEAP_FLAGS heapFlags,
+        D3D12_RESOURCE_DESC1 desc,
+        D3D12_BARRIER_LAYOUT initialLayout = D3D12_BARRIER_LAYOUT_UNDEFINED,
+        const D3D12_CLEAR_VALUE* optimizedClearValue = nullptr,
+        Span<const DXGI_FORMAT> castableFormats = Span<const DXGI_FORMAT>()
+     );
+
+    DXLResource CreatePlacedResource(
+        DXLHeap heap,
+        uint64_t heapOffset,
+        D3D12_RESOURCE_DESC1 desc,
+        D3D12_BARRIER_LAYOUT initialLayout = D3D12_BARRIER_LAYOUT_UNDEFINED,
+        const D3D12_CLEAR_VALUE* optimizedClearValue = nullptr,
+        Span<const DXGI_FORMAT> castableFormats = Span<const DXGI_FORMAT>()
+    );
+
+    DXLResource CreateTiledResource(
+        D3D12_RESOURCE_DESC desc,
+        D3D12_BARRIER_LAYOUT initialLayout = D3D12_BARRIER_LAYOUT_UNDEFINED,
+        const D3D12_CLEAR_VALUE* optimizedClearValue = nullptr,
+        Span<const DXGI_FORMAT> castableFormats = Span<const DXGI_FORMAT>()
+    );
+#endif
 
     void GetResourceTiling(
         DXLResource tiledResource,

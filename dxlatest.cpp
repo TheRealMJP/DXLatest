@@ -1411,7 +1411,21 @@ DXLRootSignature DXLDevice::CreateRootSignature(D3D12_ROOT_SIGNATURE_DESC2 rootS
     return rootSig;
 }
 
-#endif
+DXLQueryHeap DXLDevice::CreateQueryHeap(D3D12_QUERY_HEAP_DESC desc)
+{
+    DXLQueryHeap queryHeap;
+    ToNative()->CreateQueryHeap(&desc, DXL_PPV_ARGS(&queryHeap));
+    return queryHeap;
+}
+
+DXLCommandSignature DXLDevice::CreateCommandSignature(D3D12_COMMAND_SIGNATURE_DESC desc, DXLRootSignature rootSignature)
+{
+    DXLCommandSignature commandSignature;
+    ToNative()->CreateCommandSignature(&desc, rootSignature, DXL_PPV_ARGS(&commandSignature));
+    return commandSignature;
+}
+
+#endif // DXL_ENABLE_EXTENSIONS()
 
 void DXLDevice::CreateConstantBufferView(const D3D12_CONSTANT_BUFFER_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor)
 {
@@ -1478,7 +1492,7 @@ HRESULT DXLDevice::CreateCommittedResource3(const D3D12_HEAP_PROPERTIES* heapPro
     return ToNative()->CreateCommittedResource3(heapProperties, heapFlags, desc, initialLayout, optimizedClearValue, protectedSession, numCastableFormats, castableFormats, riid, outResource);
 }
 
-HRESULT DXLDevice::CreatePlacedResource2(ID3D12Heap* heap, uint64_t heapOffset, const D3D12_RESOURCE_DESC1* desc, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, uint32_t numCastableFormats, const DXGI_FORMAT* castableFormats, REFIID riid, void** outResource)
+HRESULT DXLDevice::CreatePlacedResource2(DXLHeap heap, uint64_t heapOffset, const D3D12_RESOURCE_DESC1* desc, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, uint32_t numCastableFormats, const DXGI_FORMAT* castableFormats, REFIID riid, void** outResource)
 {
     return ToNative()->CreatePlacedResource2(heap, heapOffset, desc, initialLayout, optimizedClearValue, numCastableFormats, castableFormats, riid, outResource);
 }
@@ -1487,6 +1501,38 @@ HRESULT DXLDevice::CreateReservedResource2(const D3D12_RESOURCE_DESC* desc, D3D1
 {
     return ToNative()->CreateReservedResource2(desc, initialLayout, optimizedClearValue, protectedSession, numCastableFormats, castableFormats, riid, outResource);
 }
+
+#if DXL_ENABLE_EXTENSIONS()
+
+DXLHeap DXLDevice::CreateHeap(D3D12_HEAP_DESC desc)
+{
+    DXLHeap heap;
+    ToNative()->CreateHeap(&desc, DXL_PPV_ARGS(&heap));
+    return heap;
+}
+
+DXLResource DXLDevice::CreateCommittedResource(D3D12_HEAP_PROPERTIES heapProperties, D3D12_HEAP_FLAGS heapFlags, D3D12_RESOURCE_DESC1 desc, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, Span<const DXGI_FORMAT> castableFormats)
+{
+    DXLResource resource;
+    ToNative()->CreateCommittedResource3(&heapProperties, heapFlags, &desc, initialLayout, optimizedClearValue, nullptr, castableFormats.Count, castableFormats.Items, DXL_PPV_ARGS(&resource));
+    return resource;
+}
+
+DXLResource DXLDevice::CreatePlacedResource(DXLHeap heap, uint64_t heapOffset, D3D12_RESOURCE_DESC1 desc, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, Span<const DXGI_FORMAT> castableFormats)
+{
+    DXLResource resource;
+    ToNative()->CreatePlacedResource2(heap, heapOffset, &desc, initialLayout, optimizedClearValue, castableFormats.Count, castableFormats.Items, DXL_PPV_ARGS(&resource));
+    return resource;
+}
+
+DXLResource DXLDevice::CreateTiledResource(D3D12_RESOURCE_DESC desc, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, Span<const DXGI_FORMAT> castableFormats)
+{
+    DXLResource resource;
+    ToNative()->CreateReservedResource2(&desc, initialLayout, optimizedClearValue, nullptr, castableFormats.Count, castableFormats.Items, DXL_PPV_ARGS(&resource));
+    return resource;
+}
+
+#endif // #if DXL_ENABLE_EXTENSIONS()
 
 void DXLDevice::GetResourceTiling(DXLResource tiledResource, uint32_t* outNumTilesForEntireResource, D3D12_PACKED_MIP_INFO* outPackedMipDesc, D3D12_TILE_SHAPE* outStandardTileShapeForNonPackedMips, uint32_t* numSubresourceTilings, uint32_t firstSubresourceTilingToGet, D3D12_SUBRESOURCE_TILING* outSubresourceTilingsForNonPackedMips)
 {
