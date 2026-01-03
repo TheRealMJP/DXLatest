@@ -96,6 +96,7 @@ static void Initialize()
 
 static void Shutdown()
 {
+    dxl::Release(rtvDescriptorHeap);
     dxl::Release(frameFence);
     dxl::Release(commandList);
     dxl::Release(commandQueue);
@@ -170,7 +171,7 @@ static void Render()
         commandQueue->Signal(frameFence, cpuFrame);
 
         // Wait for the GPU to catch up before we stomp an executing command buffer
-        const uint64_t gpuLag = cpuFrame - cpuFrame;
+        const uint64_t gpuLag = cpuFrame - gpuFrame;
         if (gpuLag >= RenderLatency)
         {
             // Make sure that the previous frame is finished
