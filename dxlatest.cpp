@@ -286,7 +286,7 @@ bool DXLFence::WaitWithEvent(uint64_t value, HANDLE event, uint32_t timeout)
 
 // == DXLPipelineState ======================================================
 
-HRESULT DXLPipelineState::GetRootSignature(REFIID riid, void** outRootSignature) const
+/*HRESULT DXLPipelineState::GetRootSignature(REFIID riid, void** outRootSignature) const
 {
     return ToNative()->GetRootSignature(riid, outRootSignature);
 }
@@ -300,7 +300,7 @@ DXLRootSignature DXLPipelineState::GetRootSignature() const
     return DXLRootSignature(rootSig);
 }
 
-#endif
+#endif*/
 
 // == DXLStateObjectProperties =====================================================
 
@@ -1016,7 +1016,8 @@ DXLPipelineState DXLDevice::CreateComputePSO(DXLRootSignature rootSignature, con
 DXLPipelineState DXLDevice::CreateGraphicsPSO(D3D12_PIPELINE_STATE_STREAM_DESC desc)
 {
     DXLPipelineState pso;
-    ToNative()->CreatePipelineState(&desc, DXL_PPV_ARGS(&pso));
+    HRESULT hr = ToNative()->CreatePipelineState(&desc, DXL_PPV_ARGS(&pso));
+    DXL_ASSERT(SUCCEEDED(hr), "Uh oh");
     return pso;
 }
 
@@ -1106,6 +1107,36 @@ DXLDescriptorHeap DXLDevice::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_DESC des
     DXLDescriptorHeap descriptorHeap;
     ToNative()->CreateDescriptorHeap(&descriptorHeapDesc, DXL_PPV_ARGS(&descriptorHeap));
     return descriptorHeap;
+}
+
+DXLRootSignature DXLDevice::CreateRootSignature(D3D12_ROOT_SIGNATURE_DESC2 rootSignatureDesc)
+{
+    D3D12_VERSIONED_ROOT_SIGNATURE_DESC versionedDesc =
+    {
+        .Version = D3D_ROOT_SIGNATURE_VERSION_1_2,
+        .Desc_1_2 = rootSignatureDesc,
+    };
+
+    ComPtr<ID3DBlob> signature;
+    ComPtr<ID3DBlob> error;
+    HRESULT hr = D3D12SerializeVersionedRootSignature(&versionedDesc, &signature, &error);
+    if (FAILED(hr))
+    {
+        /*const char* errString = error ? reinterpret_cast<const char*>(error->GetBufferPointer()) : "";
+
+        #if UseAsserts_
+            AssertMsg_(false, "Failed to create root signature: %s", errString);
+        #else
+            throw DXException(hr, MakeString("Failed to create root signature: %s", errString).c_str());
+        #endif*/
+
+        return DXLRootSignature();
+    }
+
+    DXLRootSignature rootSig;
+    ToNative()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), DXL_PPV_ARGS(&rootSig));
+
+    return rootSig;
 }
 
 #endif

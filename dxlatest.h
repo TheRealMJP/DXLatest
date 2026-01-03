@@ -173,12 +173,12 @@ class DXLPipelineState : public DXLPageable
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLPipelineState, ID3D12PipelineState1);
+    DXL_INTERFACE_BOILERPLATE(DXLPipelineState, ID3D12PipelineState);
 
-    HRESULT GetRootSignature(REFIID riid, void** outRootSignature) const;
+    /*HRESULT GetRootSignature(REFIID riid, void** outRootSignature) const;
 #if DXL_ENABLE_EXTENSIONS()
     DXLRootSignature GetRootSignature() const;
-#endif
+#endif*/
 };
 
 class DXLStateObject : public DXLPageable
@@ -470,7 +470,7 @@ struct DXL_SIMPLE_GRAPHICS_PSO_DESC
 {
     DXLRootSignature RootSignature;
     D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    D3D12_RASTERIZER_DESC2 RasterizerState = { };
+    D3D12_RASTERIZER_DESC2 RasterizerState = { .FillMode = D3D12_FILL_MODE_SOLID, .CullMode = D3D12_CULL_MODE_NONE, .DepthClipEnable = true };
     D3D12_SHADER_BYTECODE VertexShaderByteCode = { };
     D3D12_SHADER_BYTECODE PixelShaderByteCode = { };
     D3D12_BLEND_DESC BlendState = { };
@@ -544,6 +544,7 @@ public:
 
 #if DXL_ENABLE_EXTENSIONS()
     DXLDescriptorHeap CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc);
+    DXLRootSignature CreateRootSignature(D3D12_ROOT_SIGNATURE_DESC2 rootSignatureDesc);
 #endif
 
     void CreateConstantBufferView(const D3D12_CONSTANT_BUFFER_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
