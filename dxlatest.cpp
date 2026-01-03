@@ -1621,6 +1621,18 @@ bool DXLDebugInfoQueue::GetMuteDebugOutput()
 
 #if DXL_ENABLE_EXTENSIONS()
 
+static void DefaultDebugLayerCallback([[maybe_unused]] D3D12_MESSAGE_CATEGORY category, D3D12_MESSAGE_SEVERITY severity, [[maybe_unused]] D3D12_MESSAGE_ID ID, const char* description, [[maybe_unused]] void* context)
+{
+    if (severity == D3D12_MESSAGE_SEVERITY_MESSAGE || severity == D3D12_MESSAGE_SEVERITY_MESSAGE)
+    {
+        PrintMessage("D3D Debug Layer: %s", description);
+        return;
+    }
+
+    PrintMessage("D3D Debug Layer Error: %s", description);
+    __debugbreak();
+}
+
 CreateDeviceResult CreateDevice(CreateDeviceParams params)
 {
     ComPtr<IDXGIFactory7> factory;
@@ -1671,6 +1683,19 @@ CreateDeviceResult CreateDevice(CreateDeviceParams params)
     device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options12, sizeof(options12));
     if(options12.EnhancedBarriersSupported == false)
         return { DXLDevice(), E_FAIL, "The selected GPU does not support enhanced barriers, which is required for DXLatest" };
+
+#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+    {
+        ComPtr<ID3D12InfoQueue1> infoQueue;
+        if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue))))
+        {
+            D3D12MessageFunc callback = params.DebugLayerCallbackFunction ? params.DebugLayerCallbackFunction : DefaultDebugLayerCallback;
+
+            DWORD callbackCookie = 0;
+            infoQueue->RegisterMessageCallback(callback, D3D12_MESSAGE_CALLBACK_FLAG_NONE, nullptr, &callbackCookie);
+        }
+    }
+#endif
 
     device->AddRef();
     return { device.Get(), S_OK, nullptr };
