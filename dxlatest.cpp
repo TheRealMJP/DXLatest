@@ -267,6 +267,23 @@ D3D12_FENCE_FLAGS DXLFence::GetCreationFlags() const
     return ToNative()->GetCreationFlags();
 }
 
+#if DXL_ENABLE_EXTENSIONS()
+
+bool DXLFence::WaitWithEvent(uint64_t value, HANDLE event, uint32_t timeout)
+{
+    if (ToNative()->GetCompletedValue() < value)
+    {
+        ToNative()->SetEventOnCompletion(value, event);
+        return WaitForSingleObject(event, timeout) == WAIT_OBJECT_0;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+#endif
+
 // == DXLPipelineState ======================================================
 
 HRESULT DXLPipelineState::GetRootSignature(REFIID riid, void** outRootSignature) const
@@ -509,6 +526,43 @@ void DXLCommandList::Barrier(uint32_t numBarrierGroups, const D3D12_BARRIER_GROU
 {
     ToNative()->Barrier(numBarrierGroups, barrierGroups);
 }
+
+#if DXL_ENABLE_EXTENSIONS()
+
+void DXLCommandList::Barrier(D3D12_GLOBAL_BARRIER barrier)
+{
+    const D3D12_BARRIER_GROUP group =
+    {
+        .Type = D3D12_BARRIER_TYPE_GLOBAL,
+        .NumBarriers = 1,
+        .pGlobalBarriers = &barrier,
+    };
+    ToNative()->Barrier(1, &group);
+}
+
+void DXLCommandList::Barrier(D3D12_BUFFER_BARRIER barrier)
+{
+    const D3D12_BARRIER_GROUP group =
+    {
+        .Type = D3D12_BARRIER_TYPE_BUFFER,
+        .NumBarriers = 1,
+        .pBufferBarriers = &barrier,
+    };
+    ToNative()->Barrier(1, &group);
+}
+
+void DXLCommandList::Barrier(D3D12_TEXTURE_BARRIER barrier)
+{
+    const D3D12_BARRIER_GROUP group =
+    {
+        .Type = D3D12_BARRIER_TYPE_TEXTURE,
+        .NumBarriers = 1,
+        .pTextureBarriers = &barrier,
+    };
+    ToNative()->Barrier(1, &group);
+}
+
+#endif // DXL_ENABLE_EXTENSIONS()
 
 void DXLCommandList::ResolveSubresource(DXLResource dstResource, uint32_t dstSubresource, DXLResource srcResource, uint32_t srcSubresource, DXGI_FORMAT format)
 {
@@ -1045,6 +1099,17 @@ HRESULT DXLDevice::CreateCommandSignature(const D3D12_COMMAND_SIGNATURE_DESC* de
     return ToNative()->CreateCommandSignature(desc, rootSignature, riid, outCommandSignature);
 }
 
+#if DXL_ENABLE_EXTENSIONS()
+
+DXLDescriptorHeap DXLDevice::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc)
+{
+    DXLDescriptorHeap descriptorHeap;
+    ToNative()->CreateDescriptorHeap(&descriptorHeapDesc, DXL_PPV_ARGS(&descriptorHeap));
+    return descriptorHeap;
+}
+
+#endif
+
 void DXLDevice::CreateConstantBufferView(const D3D12_CONSTANT_BUFFER_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor)
 {
     ToNative()->CreateConstantBufferView(desc, destDescriptor);
@@ -1170,6 +1235,13 @@ HRESULT DXLDevice::SetEventOnMultipleFenceCompletion(ID3D12Fence*const* fences, 
     return ToNative()->SetEventOnMultipleFenceCompletion(fences, fenceValues, numFences, flags, event);
 }
 
+DXLFence DXLDevice::CreateFence(uint64_t initialValue, D3D12_FENCE_FLAGS flags)
+{
+    DXLFence fence;
+    ToNative()->CreateFence(initialValue, flags, DXL_PPV_ARGS(&fence));
+    return fence;
+}
+
 void DXLDevice::GetRaytracingAccelerationStructurePrebuildInfo(const D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS* desc, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO* outInfo)
 {
     ToNative()->GetRaytracingAccelerationStructurePrebuildInfo(desc, outInfo);
@@ -1228,9 +1300,9 @@ DXLSwapChain DXLSwapChain::Create(DXGI_SWAP_CHAIN_DESC desc, DXLCommandQueue pre
 
 #endif
 
-HRESULT DXLSwapChain::Present1(uint32_t syncInterval, uint32_t presentFlags, const DXGI_PRESENT_PARAMETERS* presentParameters)
+HRESULT DXLSwapChain::Present(uint32_t syncInterval, uint32_t presentFlags)
 {
-    return ToNative()->Present1(syncInterval, presentFlags, presentParameters);
+    return ToNative()->Present(syncInterval, presentFlags);
 }
 
 HRESULT DXLSwapChain::ResizeBuffers(uint32_t bufferCount, uint32_t width, uint32_t height, DXGI_FORMAT newFormat, UINT swapChainFlags)

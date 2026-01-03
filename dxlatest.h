@@ -162,6 +162,10 @@ public:
     HRESULT Signal(uint64_t value);
 
     D3D12_FENCE_FLAGS GetCreationFlags() const;
+
+#if DXL_ENABLE_EXTENSIONS()
+    bool WaitWithEvent(uint64_t value, HANDLE event, uint32_t timeout = INFINITE);
+#endif
 };
 
 class DXLPipelineState : public DXLPageable
@@ -290,6 +294,11 @@ public:
     void CopyTiles(DXLResource tiledResource, const D3D12_TILED_RESOURCE_COORDINATE* tileRegionStartCoordinate, const D3D12_TILE_REGION_SIZE* tileRegionSize, DXLResource buffer, uint64_t bufferStartOffsetInBytes, D3D12_TILE_COPY_FLAGS flags);
 
     void Barrier(uint32_t numBarrierGroups, const D3D12_BARRIER_GROUP* barrierGroups);
+#if DXL_ENABLE_EXTENSIONS()
+    void Barrier(D3D12_GLOBAL_BARRIER barrier);
+    void Barrier(D3D12_BUFFER_BARRIER barrier);
+    void Barrier(D3D12_TEXTURE_BARRIER barrier);
+#endif
 
     void ResolveSubresource(DXLResource dstResource, uint32_t dstSubresource, DXLResource srcResource, uint32_t srcSubresource, DXGI_FORMAT format);
 
@@ -533,6 +542,10 @@ public:
 
     HRESULT CreateCommandSignature(const D3D12_COMMAND_SIGNATURE_DESC* desc, DXLRootSignature rootSignature, REFIID riid, void** outCommandSignature);
 
+#if DXL_ENABLE_EXTENSIONS()
+    DXLDescriptorHeap CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc);
+#endif
+
     void CreateConstantBufferView(const D3D12_CONSTANT_BUFFER_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
     void CreateShaderResourceView(DXLResource resource, const D3D12_SHADER_RESOURCE_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
     void CreateUnorderedAccessView(DXLResource resource, DXLResource counterResource, const D3D12_UNORDERED_ACCESS_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
@@ -625,6 +638,10 @@ public:
     HRESULT CreateFence(uint64_t initialValue, D3D12_FENCE_FLAGS flags, REFIID riid, void** outFence);
     HRESULT SetEventOnMultipleFenceCompletion(ID3D12Fence*const* fences, const uint64_t* fenceValues, uint32_t numFences, D3D12_MULTIPLE_FENCE_WAIT_FLAGS flags, HANDLE event);
 
+#if DXL_ENABLE_EXTENSIONS()
+    DXLFence CreateFence(uint64_t initialValue, D3D12_FENCE_FLAGS flags = D3D12_FENCE_FLAG_NONE);
+#endif
+
     void GetRaytracingAccelerationStructurePrebuildInfo(const D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS* desc, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO* outInfo);
 
     void RemoveDevice();
@@ -647,7 +664,7 @@ public:
     static DXLSwapChain Create(DXGI_SWAP_CHAIN_DESC desc, DXLCommandQueue presentQueue);
 #endif
 
-    HRESULT Present1(uint32_t syncInterval, uint32_t presentFlags, const DXGI_PRESENT_PARAMETERS* presentParameters);
+    HRESULT Present(uint32_t syncInterval, uint32_t presentFlags);
 
     HRESULT ResizeBuffers(uint32_t bufferCount, uint32_t width, uint32_t height, DXGI_FORMAT newFormat, UINT swapChainFlags);
 
