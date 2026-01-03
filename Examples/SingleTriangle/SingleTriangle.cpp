@@ -2,6 +2,9 @@
 #include "../Shared/Window.h"
 #include "../Shared/ExampleHelpers.h"
 
+#include "SingleTriangleVS.h"
+#include "SingleTrianglePS.h"
+
 using namespace dxl;
 
 static constexpr uint32_t RenderLatency = 2;
@@ -27,6 +30,9 @@ static DXLResource swapChainBuffers[NumSwapChainBuffers];
 
 static DXLDescriptorHeap rtvDescriptorHeap;
 static D3D12_CPU_DESCRIPTOR_HANDLE swapChainRTVs[NumSwapChainBuffers] = { };
+
+static DXLRootSignature rootSignature;
+static DXLPipelineState pso;
 
 static void Initialize()
 {
@@ -91,11 +97,26 @@ static void Initialize()
         }
     }
 
+    {
+        rootSignature = device->CreateRootSignature({ });
+
+        pso = device->CreateGraphicsPSO(
+        {
+            .RootSignature = rootSignature,
+            .VertexShaderByteCode = { SingleTriangleVS, sizeof(SingleTriangleVS) },
+            .PixelShaderByteCode = { SingleTrianglePS, sizeof(SingleTrianglePS) },
+            .RenderTargetFormats = { .RTFormats = { DXGI_FORMAT_R8G8B8A8_UNORM },  .NumRenderTargets = 1 },
+        });
+        pso->SetName("Main PSO");
+    }
+
     window.ShowWindow();
 }
 
 static void Shutdown()
 {
+    dxl::Release(rootSignature);
+    dxl::Release(pso);
     dxl::Release(rtvDescriptorHeap);
     dxl::Release(frameFence);
     dxl::Release(commandList);
@@ -139,6 +160,11 @@ static void Render()
 
         const float clearColor[4] = { 0.1f, 0.9f, 0.1f, 1.0f };
         commandList->ClearRenderTargetView(rtvHandles[0], clearColor, 0, nullptr);
+
+        commandList->SetPipelineState(pso);
+        commandList->SetGraphicsRootSignature(rootSignature);
+        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        commandList->DrawInstanced(3, 1, 0, 0);
 
         const D3D12_TEXTURE_BARRIER backBufferPresentBarrier =
         {
