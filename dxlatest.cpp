@@ -121,6 +121,35 @@ struct WideStringConverter
     }
 };
 
+static void DefaultErrorCallback(const char* function, HRESULT hr, const char* message)
+{
+    char hrString[256] = { };
+    FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), hrString, DXL_ARRAY_SIZE(hrString), nullptr);
+    size_t hrStringLen = strlen(hrString);
+    if (hrString[hrStringLen - 1] == '\n')
+        hrString[hrStringLen - 1] = 0;
+    if (hrString[hrStringLen - 2] == '\r')
+        hrString[hrStringLen - 2] = 0;
+
+    if (message && message[0])
+        PrintMessage("Function '%s' failed with HRESULT 0x%x (%s): %s", function, hr, hrString, message);
+    else
+        PrintMessage("Function '%s' failed with HRESULT 0x%x (%s)", function, hr, hrString, message);
+
+    __debugbreak();
+}
+
+static ErrorCallbackFunction errorCallback = DefaultErrorCallback;
+
+void SetErrorCallback(ErrorCallbackFunction callback)
+{
+    errorCallback = callback;
+}
+
+#define DXL_ERROR(function, hr, msg) do { if (errorCallback) errorCallback(function, hr, msg); } while(0)
+#define DXL_HANDLE_HRESULT(hr) do { if (FAILED(hr) && errorCallback) errorCallback(__FUNCTION__, hr, ""); } while(0)
+#define DXL_HANDLE_HRESULT_MSG(hr, msg) do { if (FAILED(hr) && errorCallback) errorCallback(__FUNCTION__, hr, msg); } while(0)
+
 namespace helpers
 {
 
@@ -444,7 +473,7 @@ void* DXLResource::Map(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeInd
     const uint32_t subresourceIndex = D3D12CalcSubresource(mipLevel, arrayIndex, planeIndex, desc.MipLevels, desc.DepthOrArraySize);
 
     void* data = nullptr;
-    ToNative()->Map(subresourceIndex, nullptr, &data);
+    DXL_HANDLE_HRESULT(ToNative()->Map(subresourceIndex, nullptr, &data));
     return data;
 }
 
@@ -517,7 +546,7 @@ bool DXLFence::WaitWithEvent(uint64_t value, HANDLE event, uint32_t timeout)
 {
     if (ToNative()->GetCompletedValue() < value)
     {
-        ToNative()->SetEventOnCompletion(value, event);
+        DXL_HANDLE_HRESULT(ToNative()->SetEventOnCompletion(value, event));
         return WaitForSingleObject(event, timeout) == WAIT_OBJECT_0;
     }
     else
@@ -540,7 +569,7 @@ bool DXLFence::WaitWithEvent(uint64_t value, HANDLE event, uint32_t timeout)
 DXLRootSignature DXLPipelineState::GetRootSignature() const
 {
     ID3D12RootSignature* rootSig = nullptr;
-    GetRootSignature(IID_PPV_ARGS(&rootSig));
+    DXL_HANDLE_HRESULT_MSG(GetRootSignature(IID_PPV_ARGS(&rootSig)));
     return DXLRootSignature(rootSig);
 }
 
@@ -558,18 +587,6 @@ uint64_t DXLStateObjectProperties::GetShaderStackSize(const wchar_t* exportName)
     return ToNative()->GetShaderStackSize(exportName);
 }
 
-#if DXL_ENABLE_EXTENSIONS()
-
-void* DXLStateObjectProperties::GetShaderIdentifier(const char* exportName)
-{
-    return ToNative()->GetShaderIdentifier(WideStringConverter(exportName).wideString);
-}
-
-uint64_t DXLStateObjectProperties::GetShaderStackSize(const char* exportName)
-{
-    return ToNative()->GetShaderStackSize(WideStringConverter(exportName).wideString);
-}
-
 D3D12_PROGRAM_IDENTIFIER DXLStateObjectProperties::GetProgramIdentifier(const char* programName)
 {
     return ToNative()->GetProgramIdentifier(WideStringConverter(programName).wideString);
@@ -584,17 +601,30 @@ HRESULT DXLStateObjectProperties::GetGlobalRootSignatureForShader(const wchar_t*
     return ToNative()->GetGlobalRootSignatureForShader(exportName, riid, outRootSignature);
 }
 
+
+#if DXL_ENABLE_EXTENSIONS()
+
+void* DXLStateObjectProperties::GetShaderIdentifier(const char* exportName)
+{
+    return ToNative()->GetShaderIdentifier(WideStringConverter(exportName).wideString);
+}
+
+uint64_t DXLStateObjectProperties::GetShaderStackSize(const char* exportName)
+{
+    return ToNative()->GetShaderStackSize(WideStringConverter(exportName).wideString);
+}
+
 DXLRootSignature DXLStateObjectProperties::GetGlobalRootSignatureForProgram(const char* programName)
 {
     ID3D12RootSignature* rootSig = nullptr;
-    ToNative()->GetGlobalRootSignatureForProgram(WideStringConverter(programName).wideString, IID_PPV_ARGS(&rootSig));
+    DXL_HANDLE_HRESULT(ToNative()->GetGlobalRootSignatureForProgram(WideStringConverter(programName).wideString, IID_PPV_ARGS(&rootSig)));
     return DXLRootSignature(rootSig);
 }
 
 DXLRootSignature DXLStateObjectProperties::GetGlobalRootSignatureForShader(const char* exportName)
 {
     ID3D12RootSignature* rootSig = nullptr;
-    ToNative()->GetGlobalRootSignatureForShader(WideStringConverter(exportName).wideString, IID_PPV_ARGS(&rootSig));
+    DXL_HANDLE_HRESULT(ToNative()->GetGlobalRootSignatureForShader(WideStringConverter(exportName).wideString, IID_PPV_ARGS(&rootSig)));
     return DXLRootSignature(rootSig);
 }
 
@@ -1231,21 +1261,21 @@ HRESULT DXLDevice::CreateCommandList1(uint32_t nodeMask, D3D12_COMMAND_LIST_TYPE
 DXLCommandQueue DXLDevice::CreateCommandQueue(D3D12_COMMAND_QUEUE_DESC desc)
 {
     DXLCommandQueue commandQueue;
-    ToNative()->CreateCommandQueue(&desc, DXL_PPV_ARGS(&commandQueue));
+    DXL_HANDLE_HRESULT(ToNative()->CreateCommandQueue(&desc, DXL_PPV_ARGS(&commandQueue)));
     return commandQueue;
 }
 
 DXLCommandAllocator DXLDevice::CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type)
 {
     DXLCommandAllocator commandAllocator;
-    ToNative()->CreateCommandAllocator(type, DXL_PPV_ARGS(&commandAllocator));
+    DXL_HANDLE_HRESULT(ToNative()->CreateCommandAllocator(type, DXL_PPV_ARGS(&commandAllocator)));
     return commandAllocator;
 }
 
 DXLCommandList DXLDevice::CreateCommandList(D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags)
 {
     DXLCommandList commandList;
-    ToNative()->CreateCommandList1(0, type, flags, DXL_PPV_ARGS(&commandList));
+    DXL_HANDLE_HRESULT(ToNative()->CreateCommandList1(0, type, flags, DXL_PPV_ARGS(&commandList)));
     return commandList;
 }
 
@@ -1276,7 +1306,7 @@ HRESULT DXLDevice::AddToStateObject(const D3D12_STATE_OBJECT_DESC* addition, DXL
 DXLPipelineState DXLDevice::CreateComputePSO(D3D12_COMPUTE_PIPELINE_STATE_DESC desc)
 {
     DXLPipelineState pso;
-    ToNative()->CreateComputePipelineState(&desc, DXL_PPV_ARGS(&pso));
+    DXL_HANDLE_HRESULT(ToNative()->CreateComputePipelineState(&desc, DXL_PPV_ARGS(&pso)));
     return pso;
 }
 
@@ -1288,8 +1318,7 @@ DXLPipelineState DXLDevice::CreateComputePSO(DXLRootSignature rootSignature, con
 DXLPipelineState DXLDevice::CreateGraphicsPSO(D3D12_PIPELINE_STATE_STREAM_DESC desc)
 {
     DXLPipelineState pso;
-    HRESULT hr = ToNative()->CreatePipelineState(&desc, DXL_PPV_ARGS(&pso));
-    DXL_ASSERT(SUCCEEDED(hr), "Uh oh");
+    DXL_HANDLE_HRESULT(ToNative()->CreatePipelineState(&desc, DXL_PPV_ARGS(&pso)));
     return pso;
 }
 
@@ -1329,14 +1358,14 @@ DXLPipelineState DXLDevice::CreateGraphicsPSO(DXL_MESH_SHADER_GRAPHICS_PSO_DESC 
 DXLStateObject DXLDevice::CreateStateObject(D3D12_STATE_OBJECT_DESC desc)
 {
     DXLStateObject stateObject;
-    ToNative()->CreateStateObject(&desc, DXL_PPV_ARGS(&stateObject));
+    DXL_HANDLE_HRESULT(ToNative()->CreateStateObject(&desc, DXL_PPV_ARGS(&stateObject)));
     return stateObject;
 }
 
 DXLStateObject DXLDevice::AddToStateObject(D3D12_STATE_OBJECT_DESC addition, DXLStateObject stateObjectToGrowFrom)
 {
     DXLStateObject stateObject;
-    ToNative()->AddToStateObject(&addition, stateObjectToGrowFrom.ToNative(), DXL_PPV_ARGS(&stateObjectToGrowFrom));
+    DXL_HANDLE_HRESULT(ToNative()->AddToStateObject(&addition, stateObjectToGrowFrom.ToNative(), DXL_PPV_ARGS(&stateObjectToGrowFrom)));
     return stateObject;
 }
 
@@ -1377,7 +1406,7 @@ HRESULT DXLDevice::CreateCommandSignature(const D3D12_COMMAND_SIGNATURE_DESC* de
 DXLDescriptorHeap DXLDevice::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc)
 {
     DXLDescriptorHeap descriptorHeap;
-    ToNative()->CreateDescriptorHeap(&descriptorHeapDesc, DXL_PPV_ARGS(&descriptorHeap));
+    DXL_HANDLE_HRESULT(ToNative()->CreateDescriptorHeap(&descriptorHeapDesc, DXL_PPV_ARGS(&descriptorHeap)));
     return descriptorHeap;
 }
 
@@ -1394,19 +1423,13 @@ DXLRootSignature DXLDevice::CreateRootSignature(D3D12_ROOT_SIGNATURE_DESC2 rootS
     HRESULT hr = D3D12SerializeVersionedRootSignature(&versionedDesc, &signature, &error);
     if (FAILED(hr))
     {
-        /*const char* errString = error ? reinterpret_cast<const char*>(error->GetBufferPointer()) : "";
-
-        #if UseAsserts_
-            AssertMsg_(false, "Failed to create root signature: %s", errString);
-        #else
-            throw DXException(hr, MakeString("Failed to create root signature: %s", errString).c_str());
-        #endif*/
-
+        const char* errString = error ? reinterpret_cast<const char*>(error->GetBufferPointer()) : "";
+        DXL_HANDLE_HRESULT_MSG(hr, errString);
         return DXLRootSignature();
     }
 
     DXLRootSignature rootSig;
-    ToNative()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), DXL_PPV_ARGS(&rootSig));
+    DXL_HANDLE_HRESULT(ToNative()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), DXL_PPV_ARGS(&rootSig)));
 
     return rootSig;
 }
@@ -1414,14 +1437,14 @@ DXLRootSignature DXLDevice::CreateRootSignature(D3D12_ROOT_SIGNATURE_DESC2 rootS
 DXLQueryHeap DXLDevice::CreateQueryHeap(D3D12_QUERY_HEAP_DESC desc)
 {
     DXLQueryHeap queryHeap;
-    ToNative()->CreateQueryHeap(&desc, DXL_PPV_ARGS(&queryHeap));
+    DXL_HANDLE_HRESULT(ToNative()->CreateQueryHeap(&desc, DXL_PPV_ARGS(&queryHeap)));
     return queryHeap;
 }
 
 DXLCommandSignature DXLDevice::CreateCommandSignature(D3D12_COMMAND_SIGNATURE_DESC desc, DXLRootSignature rootSignature)
 {
     DXLCommandSignature commandSignature;
-    ToNative()->CreateCommandSignature(&desc, rootSignature, DXL_PPV_ARGS(&commandSignature));
+    DXL_HANDLE_HRESULT(ToNative()->CreateCommandSignature(&desc, rootSignature, DXL_PPV_ARGS(&commandSignature)));
     return commandSignature;
 }
 
@@ -1507,28 +1530,28 @@ HRESULT DXLDevice::CreateReservedResource2(const D3D12_RESOURCE_DESC* desc, D3D1
 DXLHeap DXLDevice::CreateHeap(D3D12_HEAP_DESC desc)
 {
     DXLHeap heap;
-    ToNative()->CreateHeap(&desc, DXL_PPV_ARGS(&heap));
+    DXL_HANDLE_HRESULT(ToNative()->CreateHeap(&desc, DXL_PPV_ARGS(&heap)));
     return heap;
 }
 
 DXLResource DXLDevice::CreateCommittedResource(D3D12_HEAP_PROPERTIES heapProperties, D3D12_HEAP_FLAGS heapFlags, D3D12_RESOURCE_DESC1 desc, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, Span<const DXGI_FORMAT> castableFormats)
 {
     DXLResource resource;
-    ToNative()->CreateCommittedResource3(&heapProperties, heapFlags, &desc, initialLayout, optimizedClearValue, nullptr, castableFormats.Count, castableFormats.Items, DXL_PPV_ARGS(&resource));
+    DXL_HANDLE_HRESULT(ToNative()->CreateCommittedResource3(&heapProperties, heapFlags, &desc, initialLayout, optimizedClearValue, nullptr, castableFormats.Count, castableFormats.Items, DXL_PPV_ARGS(&resource)));
     return resource;
 }
 
 DXLResource DXLDevice::CreatePlacedResource(DXLHeap heap, uint64_t heapOffset, D3D12_RESOURCE_DESC1 desc, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, Span<const DXGI_FORMAT> castableFormats)
 {
     DXLResource resource;
-    ToNative()->CreatePlacedResource2(heap, heapOffset, &desc, initialLayout, optimizedClearValue, castableFormats.Count, castableFormats.Items, DXL_PPV_ARGS(&resource));
+    DXL_HANDLE_HRESULT(ToNative()->CreatePlacedResource2(heap, heapOffset, &desc, initialLayout, optimizedClearValue, castableFormats.Count, castableFormats.Items, DXL_PPV_ARGS(&resource)));
     return resource;
 }
 
 DXLResource DXLDevice::CreateTiledResource(D3D12_RESOURCE_DESC desc, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, Span<const DXGI_FORMAT> castableFormats)
 {
     DXLResource resource;
-    ToNative()->CreateReservedResource2(&desc, initialLayout, optimizedClearValue, nullptr, castableFormats.Count, castableFormats.Items, DXL_PPV_ARGS(&resource));
+    DXL_HANDLE_HRESULT(ToNative()->CreateReservedResource2(&desc, initialLayout, optimizedClearValue, nullptr, castableFormats.Count, castableFormats.Items, DXL_PPV_ARGS(&resource)));
     return resource;
 }
 
@@ -1633,16 +1656,19 @@ DXLSwapChain DXLSwapChain::Create(DXGI_SWAP_CHAIN_DESC desc, DXLCommandQueue pre
 {
     ComPtr<IDXGIFactory7> factory;
     HRESULT hr = CreateDXGIFactory1(IID_PPV_ARGS(&factory));
+    DXL_HANDLE_HRESULT_MSG(hr, "failed to create DXGI factory");
     if (FAILED(hr))
         return DXLSwapChain();
 
     ComPtr<IDXGISwapChain> tempSwapChain;
     hr = factory->CreateSwapChain(presentQueue, &desc, &tempSwapChain);
+    DXL_HANDLE_HRESULT_MSG(hr, "failed to create swap chain");
     if (FAILED(hr))
         return DXLSwapChain();
 
     DXLSwapChain swapChain;
-    tempSwapChain->QueryInterface(DXL_PPV_ARGS(&swapChain));
+    hr = tempSwapChain->QueryInterface(DXL_PPV_ARGS(&swapChain));
+    DXL_HANDLE_HRESULT_MSG(hr, "failed to query swap chain interface");
 
     return swapChain;
 }
@@ -1828,9 +1854,7 @@ void DXLDebug::SetEnableAutoName(bool enable)
 DXLDebugDevice DXLDebugDevice::FromDevice(DXLDevice device)
 {
     ID3D12DebugDevice2* debugDevice = nullptr;
-    if (FAILED(device->QueryInterface(IID_PPV_ARGS(&debugDevice))))
-        DXL_ASSERT(false, "Failed to QueryInterface debug device interface from DXLDevice. Did you enable the debug layer?");
-
+    DXL_HANDLE_HRESULT_MSG(device->QueryInterface(IID_PPV_ARGS(&debugDevice)), "Failed to QueryInterface debug device interface from DXLDevice. Did you enable the debug layer?");
     return DXLDebugDevice(debugDevice);
 }
 
@@ -1868,9 +1892,7 @@ HRESULT DXLDebugDevice::GetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE type
 DXLDebugCommandQueue DXLDebugCommandQueue::FromCommandQueue(DXLCommandQueue commandQueue)
 {
     ID3D12DebugCommandQueue1* debugQueue = nullptr;    
-    if (FAILED(commandQueue->QueryInterface(IID_PPV_ARGS(&debugQueue))))
-        DXL_ASSERT(false, "Failed to QueryInterface debug command queue interface from DXLCommandQueue. Did you enable the debug layer?");
-
+    DXL_HANDLE_HRESULT_MSG(commandQueue->QueryInterface(IID_PPV_ARGS(&debugQueue)), "Failed to QueryInterface debug command queue interface from DXLCommandQueue. Did you enable the debug layer?");
     return DXLDebugCommandQueue(debugQueue);
 }
 
@@ -1893,9 +1915,7 @@ void DXLDebugCommandQueue::AssertTextureLayout(DXLResource resource, uint32_t su
 DXLDebugCommandList DXLDebugCommandList::FromCommandList(DXLCommandList commandList)
 {
     ID3D12DebugCommandList3* debugList = nullptr;
-    if (FAILED(commandList->QueryInterface(IID_PPV_ARGS(&debugList))))
-        DXL_ASSERT(false, "Failed to QueryInterface debug command list interface from DXLCommandList. Did you enable the debug layer?");
-
+    DXL_HANDLE_HRESULT_MSG(commandList->QueryInterface(IID_PPV_ARGS(&debugList)), "Failed to QueryInterface debug command list interface from DXLCommandList. Did you enable the debug layer?");
     return DXLDebugCommandList(debugList);
 }
 
@@ -1938,9 +1958,7 @@ void DXLDebugCommandList::AssertTextureLayout(DXLResource resource, uint32_t sub
 DXLDebugInfoQueue DXLDebugInfoQueue::FromDevice(DXLDevice device)
 {
     ID3D12InfoQueue1* infoQueue = nullptr;    
-    if (FAILED(device->QueryInterface(IID_PPV_ARGS(&infoQueue))))
-        DXL_ASSERT(false, "Failed to QueryInterface debug command info queue interface from DXLDevice. Did you enable the debug layer?");
-
+    DXL_HANDLE_HRESULT_MSG(device->QueryInterface(IID_PPV_ARGS(&infoQueue)), "Failed to QueryInterface debug command info queue interface from DXLDevice. Did you enable the debug layer?");
     return DXLDebugInfoQueue(infoQueue);
 }
 
@@ -1992,7 +2010,7 @@ CreateDeviceResult CreateDevice(CreateDeviceParams params)
     ComPtr<IDXGIAdapter4> adapter;
     hr = factory->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&adapter));
     if (FAILED(hr))
-        return { DXLDevice(), hr, "Failed to enumerage a DXGI adapter" };
+        return { DXLDevice(), hr, "Failed to enumerate a DXGI adapter" };
 
     DXGI_ADAPTER_DESC1 desc = { };
     adapter->GetDesc1(&desc);

@@ -23,14 +23,8 @@ namespace dxl
 
 #if DXL_ENABLE_EXTENSIONS()
 
-template<typename T> struct Span
-{
-    uint32_t Count = 0;
-    T* Items = nullptr;
-
-    Span() = default;
-    Span(uint32_t count, T* items) : Count(count), Items(items) { }
-};
+using ErrorCallbackFunction = void(*)(const char* function, HRESULT hr, const char* message);
+void SetErrorCallback(ErrorCallbackFunction callback);
 
 namespace helpers
 {
@@ -78,6 +72,15 @@ D3D12_RASTERIZER_DESC2 RasterizerStateDesc(RasterizerState rasterizerState);
 D3D12_DEPTH_STENCIL_DESC2 DepthStateDesc(DepthState depthState);
 
 } // namespace helpers
+
+template<typename T> struct Span
+{
+    uint32_t Count = 0;
+    T* Items = nullptr;
+
+    Span() = default;
+    Span(uint32_t count, T* items) : Count(count), Items(items) { }
+};
 
 #endif // DXL_ENABLE_EXTENSIONS()
 
