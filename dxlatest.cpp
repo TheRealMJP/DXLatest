@@ -38,17 +38,31 @@ static void PrintMessage(const char* msg, ...)
     PrintMessageBuffer(messageBuffer);
 }
 
+static void ShowMessageBox(const char* msg, ...)
+{
+    char messageBuffer[1024] = { };
+
+    va_list args;
+    va_start(args, msg);
+    vsnprintf_s(messageBuffer, 1024 - 1, 1024 - 1, msg, args);
+
+    MessageBoxA(nullptr, messageBuffer, "DXL", MB_OK | MB_ICONERROR);
+}
+
 static void PrintAssertMessage(const char* condition, const char* msg, const char* file, const int32_t line)
 {
     const uint64_t BufferSize = 2048;
     char buffer[BufferSize] = { };
     sprintf_s(buffer, BufferSize, "%s(%d): Assert Failure: ", file, line);
 
-    if(condition != nullptr)
+    if (condition != nullptr)
         sprintf_s(buffer, BufferSize, "%s'%s' ", buffer, condition);
 
-    if(msg != nullptr)
+    if (msg != nullptr)
         sprintf_s(buffer, BufferSize, "%s%s", buffer, msg);
+
+    if (IsDebuggerPresent() == false)
+        ShowMessageBox(buffer);
 
     sprintf_s(buffer, BufferSize, "%s\n", buffer);
 
@@ -132,9 +146,17 @@ static void DefaultErrorCallback(const char* function, HRESULT hr, const char* m
         hrString[hrStringLen - 2] = 0;
 
     if (message && message[0])
+    {
         PrintMessage("Function '%s' failed with HRESULT 0x%x (%s): %s", function, hr, hrString, message);
+        if (IsDebuggerPresent() == false)
+            ShowMessageBox("Function '%s' failed with HRESULT 0x%x (%s): %s", function, hr, hrString, message);
+    }
     else
+    {
         PrintMessage("Function '%s' failed with HRESULT 0x%x (%s)", function, hr, hrString, message);
+        if (IsDebuggerPresent() == false)
+            ShowMessageBox("Function '%s' failed with HRESULT 0x%x (%s)", function, hr, hrString, message);
+    }
 
     __debugbreak();
 }
@@ -1997,6 +2019,8 @@ static void DefaultDebugLayerCallback([[maybe_unused]] D3D12_MESSAGE_CATEGORY ca
     }
 
     PrintMessage("D3D Debug Layer Error: %s", description);
+    if (IsDebuggerPresent() == false)
+        ShowMessageBox("D3D Debug Layer Error: %s", description);
     __debugbreak();
 }
 
