@@ -137,6 +137,23 @@ struct WideStringConverter
     }
 };
 
+static std::string GetDirectoryFromFilePath(const char* filePath_)
+{
+    std::string filePath(filePath_);
+    size_t idx = filePath.rfind('\\');
+    if(idx != std::string::npos)
+        return filePath.substr(0, idx + 1);
+    else
+        return std::string("");
+}
+
+static std::string ResolveFilePath(const char* filePath)
+{
+    char resolvedPath[MAX_PATH] = { };
+    GetFullPathNameA(filePath, DXL_ARRAY_SIZE(resolvedPath), resolvedPath, nullptr);
+    return std::string(resolvedPath);
+}
+
 static void DefaultErrorCallback(const char* function, HRESULT hr, const char* message)
 {
     char hrString[256] = { };
@@ -2031,6 +2048,16 @@ static void DefaultDebugLayerCallback([[maybe_unused]] D3D12_MESSAGE_CATEGORY ca
     __debugbreak();
 }
 
+std::string GetDefaultAgilitySDKPath()
+{
+    const char* sdkRelativePath = "..\\..\\..\\..\\..\\AgilitySDK\\bin\\x64";
+
+    char exePath[MAX_PATH] = { };
+    GetModuleFileNameA(nullptr, exePath, DXL_ARRAY_SIZE(exePath));
+    std::string sdkPath = GetDirectoryFromFilePath(exePath) + sdkRelativePath;
+    return ResolveFilePath(sdkPath.c_str());
+}
+
 CreateDeviceResult CreateDevice(CreateDeviceParams params)
 {
     ComPtr<IDXGIFactory7> factory;
@@ -2053,7 +2080,7 @@ CreateDeviceResult CreateDevice(CreateDeviceParams params)
         return { IDXLDevice(), hr, "Failed to aquire the D3D12 SDK configuration interface" };
 
     ComPtr<ID3D12DeviceFactory> deviceFactory;
-    hr = sdkConfig->CreateDeviceFactory(D3D12_SDK_VERSION, params.AgilitySDKPath, IID_PPV_ARGS(&deviceFactory));
+    hr = sdkConfig->CreateDeviceFactory(D3D12_SDK_VERSION, params.AgilitySDKPath.c_str(), IID_PPV_ARGS(&deviceFactory));
     if (FAILED(hr))
         return { IDXLDevice(), hr, "Failed to create a D3D12 device factory. Did you pass the wrong AgilitySDKPath?" };
 

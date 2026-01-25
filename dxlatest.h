@@ -31,6 +31,11 @@
 #define DXL_ENABLE_EXTENSIONS 1
 #endif
 
+#if DXL_ENABLE_EXTENSIONS
+#include <vector>
+#include <string>
+#endif
+
 namespace DXL
 {
 
@@ -905,13 +910,15 @@ public:
     bool GetMuteDebugOutput();
 };
 
-#endif
+#endif // DXL_ENABLE_DEVELOPER_ONLY_FEATURES
 
 #if DXL_ENABLE_EXTENSIONS
 
+std::string GetDefaultAgilitySDKPath();
+
 struct CreateDeviceParams
 {
-    const char* AgilitySDKPath = "";
+    std::string AgilitySDKPath = GetDefaultAgilitySDKPath();
     bool EnableDebugLayer = false;
     bool EnableGPUBasedValidation = true;
     D3D12MessageFunc DebugLayerCallbackFunction = nullptr;
@@ -936,6 +943,13 @@ template<typename TInterface> void** GetPPVArg(TInterface** ptrToInterface) { re
 template<typename TDXLInterface> void** GetPPVArg(TDXLInterface* ptrToInterface) { return reinterpret_cast<void**>(ptrToInterface->AddressOfNative()); }
 
 #define DXL_PPV_ARGS(ptrToInterface)    GetIID(ptrToInterface), GetPPVArg(ptrToInterface)
+
+namespace Helpers
+{
+
+
+
+} // namespace Helpers
 
 #endif  // DXL_ENABLE_EXTENSIONS
 

@@ -38,9 +38,7 @@ static IDXLPipelineState pso;
 static void Initialize()
 {
     {
-        const std::string agilitySDKPath = GetSampleAgilitySDKPath();
-
-        CreateDeviceResult result = DXL::CreateDevice({ .AgilitySDKPath = agilitySDKPath.c_str(), .EnableDebugLayer = true });
+        CreateDeviceResult result = DXL::CreateDevice({ .EnableDebugLayer = true });
         if (!result.Device)
         {
             window.CreateMessageBox(MakeString("Failed to create D3D12 device: %s (hr=0x%x)", result.FailureReason, result.Result).c_str(), "SingleTriangle");
