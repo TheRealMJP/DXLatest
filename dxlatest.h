@@ -11,17 +11,30 @@
     DXLStruct(D3D12Struct d3d12Struct) { memcpy(this, &d3d12Struct, sizeof(DXLStruct)); }        \
     operator D3D12Struct() const { D3D12Struct d3d12Struct = { }; memcpy(&d3d12Struct, this, sizeof(DXLStruct)); return d3d12Struct; }
 
-#define DXL_ENABLE_DESCRIPTOR_TABLES() true
-#define DXL_ENABLE_CLEAR_UAV() true
-#define DXL_ENABLE_VIEW_INSTANCING() true
-#define DXL_ENABLE_DEVELOPER_ONLY_FEATURES() true
+#ifndef DXL_ENABLE_DESCRIPTOR_TABLES
+#define DXL_ENABLE_DESCRIPTOR_TABLES 1
+#endif
 
-#define DXL_ENABLE_EXTENSIONS() true
+#ifndef DXL_ENABLE_CLEAR_UAV
+#define DXL_ENABLE_CLEAR_UAV 1
+#endif
+
+#ifndef DXL_ENABLE_VIEW_INSTANCING
+#define DXL_ENABLE_VIEW_INSTANCING 1
+#endif
+
+#ifndef DXL_ENABLE_DEVELOPER_ONLY_FEATURES
+#define DXL_ENABLE_DEVELOPER_ONLY_FEATURES 1
+#endif
+
+#ifndef DXL_ENABLE_EXTENSIONS
+#define DXL_ENABLE_EXTENSIONS 1
+#endif
 
 namespace dxl
 {
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 using ErrorCallbackFunction = void(*)(const char* function, HRESULT hr, const char* message);
 void SetErrorCallback(ErrorCallbackFunction callback);
@@ -82,7 +95,7 @@ template<typename T> struct Span
     Span(uint32_t count, T* items) : Count(count), Items(items) { }
 };
 
-#endif // DXL_ENABLE_EXTENSIONS()
+#endif // DXL_ENABLE_EXTENSIONS
 
 #define DXL_INTERFACE_BOILERPLATE(DXLClass, D3D12Interface) \
     DXLClass() = default;   \
@@ -138,7 +151,7 @@ public:
     HRESULT SetPrivateDataInterface(REFGUID guid, const IUnknown* data);
     HRESULT SetName(const wchar_t* name);
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     HRESULT SetName(const char* name);
 #endif
 };
@@ -189,7 +202,7 @@ public:
     HRESULT Map(uint32_t subresource, const D3D12_RANGE* readRange, void** outData);
     void Unmap(uint32_t subresource, const D3D12_RANGE* writtenRange);
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     void* Map(uint32_t mipLevel, uint32_t arrayIndex = 0, uint32_t planeIndex = 0);
     void Unmap(uint32_t mipLevel, uint32_t arrayIndex = 0, uint32_t planeIndex = 0);
 #endif
@@ -226,7 +239,7 @@ public:
 
     D3D12_FENCE_FLAGS GetCreationFlags() const;
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     bool WaitWithEvent(uint64_t value, HANDLE event, uint32_t timeout = INFINITE);
 #endif
 };
@@ -239,7 +252,7 @@ public:
     DXL_INTERFACE_BOILERPLATE(DXLPipelineState, ID3D12PipelineState);
 
     /*HRESULT GetRootSignature(REFIID riid, void** outRootSignature) const;
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     DXLRootSignature GetRootSignature() const;
 #endif*/
 };
@@ -264,7 +277,7 @@ public:
     HRESULT GetGlobalRootSignatureForProgram(const wchar_t* programName, REFIID riid, void** outRootSignature);
     HRESULT GetGlobalRootSignatureForShader(const wchar_t* exportName, REFIID riid, void** outRootSignature);
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     void* GetShaderIdentifier(const char* exportName);
     uint64_t GetShaderStackSize(const char* exportName);
     D3D12_PROGRAM_IDENTIFIER GetProgramIdentifier(const char* programName);
@@ -357,7 +370,7 @@ public:
     void CopyTiles(DXLResource tiledResource, const D3D12_TILED_RESOURCE_COORDINATE* tileRegionStartCoordinate, const D3D12_TILE_REGION_SIZE* tileRegionSize, DXLResource buffer, uint64_t bufferStartOffsetInBytes, D3D12_TILE_COPY_FLAGS flags);
 
     void Barrier(uint32_t numBarrierGroups, const D3D12_BARRIER_GROUP* barrierGroups);
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     void Barrier(D3D12_GLOBAL_BARRIER barrier);
     void Barrier(D3D12_BUFFER_BARRIER barrier);
     void Barrier(D3D12_TEXTURE_BARRIER barrier);
@@ -367,7 +380,7 @@ public:
 
     void IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY primitiveTopology);
     void IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view);
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     void IASetIndexBuffer(D3D12_GPU_VIRTUAL_ADDRESS bufferLocation, uint32_t sizeInBytes, DXGI_FORMAT format = DXGI_FORMAT_R16_UINT);
 #endif
     void IASetIndexBufferStripCutValue(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE ibStripCutValue);
@@ -375,7 +388,7 @@ public:
     void RSSetViewports(uint32_t numViewports, const D3D12_VIEWPORT* viewports);
     void RSSetScissorRects(uint32_t numRects, const D3D12_RECT* rects);
     void RSSetDepthBias(float depthBias, float depthBiasClamp, float slopeScaledDepthBias);
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     void RSSetViewportAndScissor(uint32_t width, uint32_t height);
 #endif
 
@@ -391,14 +404,14 @@ public:
     void SetProgram(const D3D12_SET_PROGRAM_DESC* desc);
 
     void SetDescriptorHeaps(uint32_t numDescriptorHeaps, ID3D12DescriptorHeap*const* descriptorHeaps);
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     void SetDescriptorHeaps(DXLDescriptorHeap srvUavCbvHeap, DXLDescriptorHeap samplerHeap = DXLDescriptorHeap());
 #endif
 
     void SetComputeRootSignature(DXLRootSignature rootSignature);
     void SetGraphicsRootSignature(DXLRootSignature rootSignature);
 
-#if DXL_ENABLE_DESCRIPTOR_TABLES()
+#if DXL_ENABLE_DESCRIPTOR_TABLES
     void SetComputeRootDescriptorTable(uint32_t rootParameterIndex, D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor);
     void SetGraphicsRootDescriptorTable(uint32_t rootParameterIndex, D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor);
 #endif
@@ -424,7 +437,7 @@ public:
     void BeginRenderPass(uint32_t numRenderTargets, const D3D12_RENDER_PASS_RENDER_TARGET_DESC* renderTargets, const D3D12_RENDER_PASS_DEPTH_STENCIL_DESC* depthStencil, D3D12_RENDER_PASS_FLAGS flags);
     void EndRenderPass();
 
-#if DXL_ENABLE_CLEAR_UAV()
+#if DXL_ENABLE_CLEAR_UAV
     void ClearUnorderedAccessViewUint(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const uint32_t values[4], uint32_t numRects, const D3D12_RECT* rects);
     void ClearUnorderedAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const float values[4], uint32_t numRects, const D3D12_RECT* rects);
 #endif
@@ -475,7 +488,7 @@ public:
 
     void WriteBufferImmediate(uint32_t count, const D3D12_WRITEBUFFERIMMEDIATE_PARAMETER* params, const D3D12_WRITEBUFFERIMMEDIATE_MODE* modes);
 
-#if DXL_ENABLE_VIEW_INSTANCING()
+#if DXL_ENABLE_VIEW_INSTANCING
     void SetViewInstanceMask(uint32_t mask);
 #endif
 
@@ -530,7 +543,7 @@ public:
     HRESULT GetGlobalPriority(D3D12_COMMAND_QUEUE_GLOBAL_PRIORITY* outValue);*/
 };
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 struct DXL_SIMPLE_GRAPHICS_PSO_DESC
 {
@@ -577,7 +590,7 @@ public:
     HRESULT CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type, REFIID riid, void** outCommandAllocator);
     HRESULT CreateCommandList1(uint32_t nodeMask, D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags, REFIID riid, void** outCommandList);
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     DXLCommandQueue CreateCommandQueue(D3D12_COMMAND_QUEUE_DESC desc);
     DXLCommandAllocator CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type);
     DXLCommandList CreateCommandList(D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags = D3D12_COMMAND_LIST_FLAG_NONE);
@@ -588,7 +601,7 @@ public:
     HRESULT CreateStateObject(const D3D12_STATE_OBJECT_DESC* desc, REFIID riid, void** outStateObject);
     HRESULT AddToStateObject(const D3D12_STATE_OBJECT_DESC* addition, DXLStateObject stateObjectToGrowFrom, REFIID riid, void** outNewStateObject);
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     DXLPipelineState CreateComputePSO(D3D12_COMPUTE_PIPELINE_STATE_DESC desc);
     DXLPipelineState CreateComputePSO(DXLRootSignature rootSignature, const void* byteCode, size_t byteCodeLength);
     DXLPipelineState CreateGraphicsPSO(D3D12_PIPELINE_STATE_STREAM_DESC desc);
@@ -608,7 +621,7 @@ public:
 
     HRESULT CreateCommandSignature(const D3D12_COMMAND_SIGNATURE_DESC* desc, DXLRootSignature rootSignature, REFIID riid, void** outCommandSignature);
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     DXLDescriptorHeap CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc);
     DXLRootSignature CreateRootSignature(D3D12_ROOT_SIGNATURE_DESC2 rootSignatureDesc);
     DXLQueryHeap CreateQueryHeap(D3D12_QUERY_HEAP_DESC desc);
@@ -685,7 +698,7 @@ public:
         void** outResource
     );
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     DXLHeap CreateHeap(D3D12_HEAP_DESC desc);
 
     DXLResource CreateCommittedResource(
@@ -736,7 +749,7 @@ public:
     HRESULT CreateFence(uint64_t initialValue, D3D12_FENCE_FLAGS flags, REFIID riid, void** outFence);
     HRESULT SetEventOnMultipleFenceCompletion(ID3D12Fence*const* fences, const uint64_t* fenceValues, uint32_t numFences, D3D12_MULTIPLE_FENCE_WAIT_FLAGS flags, HANDLE event);
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     DXLFence CreateFence(uint64_t initialValue, D3D12_FENCE_FLAGS flags = D3D12_FENCE_FLAG_NONE);
 #endif
 
@@ -745,7 +758,7 @@ public:
     void RemoveDevice();
     HRESULT GetDeviceRemovedReason();
 
-#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES
     HRESULT SetStablePowerState(bool enable);
     HRESULT SetBackgroundProcessingMode(D3D12_BACKGROUND_PROCESSING_MODE mode, D3D12_MEASUREMENTS_ACTION measurementsAction, HANDLE eventToSignalUponCompletion, BOOL* outFurtherMeasurementsDesired);
 #endif
@@ -758,7 +771,7 @@ public:
 
     DXL_INTERFACE_BOILERPLATE(DXLSwapChain, IDXGISwapChain4);
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     static DXLSwapChain Create(DXGI_SWAP_CHAIN_DESC desc, DXLCommandQueue presentQueue);
 #endif
 
@@ -788,7 +801,7 @@ public:
     HRESULT GetFrameStatistics(DXGI_FRAME_STATISTICS* outStats);
     HRESULT GetLastPresentCount(uint32_t* outLastPresentCount);
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     DXLResource GetBuffer(uint32_t bufferIndex) const;
     DXGI_SWAP_CHAIN_DESC1 GetDesc() const;
     HWND GetHwnd() const;
@@ -799,7 +812,7 @@ public:
 #endif
 };
 
-#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES
 
 class DXLDebug : public DXLBase
 {
@@ -826,7 +839,7 @@ public:
 
     DXL_INTERFACE_BOILERPLATE(DXLDebugDevice, ID3D12DebugDevice2);
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     static DXLDebugDevice FromDevice(DXLDevice device);
 #endif
 
@@ -845,7 +858,7 @@ public:
 
     DXL_INTERFACE_BOILERPLATE(DXLDebugCommandQueue, ID3D12DebugCommandQueue1);
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     static DXLDebugCommandQueue FromCommandQueue(DXLCommandQueue commandQueue);
 #endif
 
@@ -860,7 +873,7 @@ public:
 
     DXL_INTERFACE_BOILERPLATE(DXLDebugCommandList, ID3D12DebugCommandList3);
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     static DXLDebugCommandList FromCommandList(DXLCommandList commandList);
 #endif
 
@@ -881,7 +894,7 @@ public:
 
     DXL_INTERFACE_BOILERPLATE(DXLDebugInfoQueue, ID3D12InfoQueue1);
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
     static DXLDebugInfoQueue FromDevice(DXLDevice device);
 #endif
 
@@ -894,7 +907,7 @@ public:
 
 #endif
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 struct CreateDeviceParams
 {
@@ -924,6 +937,6 @@ template<typename TDXLInterface> void** GetPPVArg(TDXLInterface* ptrToInterface)
 
 #define DXL_PPV_ARGS(ptrToInterface)    GetIID(ptrToInterface), GetPPVArg(ptrToInterface)
 
-#endif  // DXL_ENABLE_EXTENSIONS()
+#endif  // DXL_ENABLE_EXTENSIONS
 
 } // namespace dxl

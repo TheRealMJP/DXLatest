@@ -98,6 +98,8 @@ static void AssertHandler(const char* condition, const char* file, const int32_t
         } \
     } while(0)
 
+#if DXL_ENABLE_EXTENSIONS
+
 struct WideStringConverter
 {
     wchar_t* wideString = nullptr;
@@ -413,6 +415,8 @@ D3D12_DEPTH_STENCIL_DESC2 DepthStateDesc(DepthState depthState)
 
 } // namespace helpers
 
+#endif // DXL_ENABLE_EXTENSIONS
+
 // == DXLBase ======================================================
 
 HRESULT DXLBase::QueryInterface(REFIID riid, void** outObject)
@@ -452,7 +456,7 @@ HRESULT DXLObject::SetName(const wchar_t* name)
     return ToNative()->SetName(name);
 }
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 HRESULT DXLObject::SetName(const char* name)
 {
@@ -487,7 +491,7 @@ void DXLResource::Unmap(uint32_t subresource, const D3D12_RANGE* writtenRange)
     ToNative()->Unmap(subresource, writtenRange);
 }
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 void* DXLResource::Map(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex)
 {
@@ -562,7 +566,7 @@ D3D12_FENCE_FLAGS DXLFence::GetCreationFlags() const
     return ToNative()->GetCreationFlags();
 }
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 bool DXLFence::WaitWithEvent(uint64_t value, HANDLE event, uint32_t timeout)
 {
@@ -586,7 +590,7 @@ bool DXLFence::WaitWithEvent(uint64_t value, HANDLE event, uint32_t timeout)
     return ToNative()->GetRootSignature(riid, outRootSignature);
 }
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 DXLRootSignature DXLPipelineState::GetRootSignature() const
 {
@@ -609,11 +613,6 @@ uint64_t DXLStateObjectProperties::GetShaderStackSize(const wchar_t* exportName)
     return ToNative()->GetShaderStackSize(exportName);
 }
 
-D3D12_PROGRAM_IDENTIFIER DXLStateObjectProperties::GetProgramIdentifier(const char* programName)
-{
-    return ToNative()->GetProgramIdentifier(WideStringConverter(programName).wideString);
-}
-
 HRESULT DXLStateObjectProperties::GetGlobalRootSignatureForProgram(const wchar_t* programName, REFIID riid, void** outRootSignature)
 {
     return ToNative()->GetGlobalRootSignatureForProgram(programName, riid, outRootSignature);
@@ -623,8 +622,12 @@ HRESULT DXLStateObjectProperties::GetGlobalRootSignatureForShader(const wchar_t*
     return ToNative()->GetGlobalRootSignatureForShader(exportName, riid, outRootSignature);
 }
 
+#if DXL_ENABLE_EXTENSIONS
 
-#if DXL_ENABLE_EXTENSIONS()
+D3D12_PROGRAM_IDENTIFIER DXLStateObjectProperties::GetProgramIdentifier(const char* programName)
+{
+    return ToNative()->GetProgramIdentifier(WideStringConverter(programName).wideString);
+}
 
 void* DXLStateObjectProperties::GetShaderIdentifier(const char* exportName)
 {
@@ -650,7 +653,7 @@ DXLRootSignature DXLStateObjectProperties::GetGlobalRootSignatureForShader(const
     return DXLRootSignature(rootSig);
 }
 
-#endif  // DXL_ENABLE_EXTENSIONS()
+#endif  // DXL_ENABLE_EXTENSIONS
 
 uint64_t DXLStateObjectProperties::GetPipelineStackSize()
 {
@@ -823,7 +826,7 @@ void DXLCommandList::Barrier(uint32_t numBarrierGroups, const D3D12_BARRIER_GROU
     ToNative()->Barrier(numBarrierGroups, barrierGroups);
 }
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 void DXLCommandList::Barrier(D3D12_GLOBAL_BARRIER barrier)
 {
@@ -858,7 +861,7 @@ void DXLCommandList::Barrier(D3D12_TEXTURE_BARRIER barrier)
     ToNative()->Barrier(1, &group);
 }
 
-#endif // DXL_ENABLE_EXTENSIONS()
+#endif // DXL_ENABLE_EXTENSIONS
 
 void DXLCommandList::ResolveSubresource(DXLResource dstResource, uint32_t dstSubresource, DXLResource srcResource, uint32_t srcSubresource, DXGI_FORMAT format)
 {
@@ -875,7 +878,7 @@ void DXLCommandList::IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view)
     ToNative()->IASetIndexBuffer(view);
 }
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 void DXLCommandList::IASetIndexBuffer(D3D12_GPU_VIRTUAL_ADDRESS bufferLocation, uint32_t sizeInBytes, DXGI_FORMAT format)
 {
@@ -905,7 +908,7 @@ void DXLCommandList::RSSetDepthBias(float depthBias, float depthBiasClamp, float
     ToNative()->RSSetDepthBias(depthBias, depthBiasClamp, slopeScaledDepthBias);
 }
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 void DXLCommandList::RSSetViewportAndScissor(uint32_t width, uint32_t height)
 {
@@ -978,7 +981,7 @@ void DXLCommandList::SetDescriptorHeaps(uint32_t numDescriptorHeaps, ID3D12Descr
     ToNative()->SetDescriptorHeaps(numDescriptorHeaps, descriptorHeaps);
 }
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 void DXLCommandList::SetDescriptorHeaps(DXLDescriptorHeap srvUavCbvHeap, DXLDescriptorHeap samplerHeap)
 {
@@ -998,7 +1001,7 @@ void DXLCommandList::SetGraphicsRootSignature(DXLRootSignature rootSignature)
     ToNative()->SetGraphicsRootSignature(rootSignature);
 }
 
-#if DXL_ENABLE_DESCRIPTOR_TABLES()
+#if DXL_ENABLE_DESCRIPTOR_TABLES
 
 void DXLCommandList::SetComputeRootDescriptorTable(uint32_t rootParameterIndex, D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor)
 {
@@ -1092,7 +1095,7 @@ void DXLCommandList::EndRenderPass()
     ToNative()->EndRenderPass();
 }
 
-#if DXL_ENABLE_CLEAR_UAV()
+#if DXL_ENABLE_CLEAR_UAV
 
 void DXLCommandList::ClearUnorderedAccessViewUint(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const uint32_t values[4], uint32_t numRects, const D3D12_RECT* rects)
 {
@@ -1157,7 +1160,7 @@ void DXLCommandList::ResolveSubresourceRegion(DXLResource dstResource, uint32_t 
     ToNative()->ResolveSubresourceRegion(dstResource, dstSubresource, dstX, dstY, srcResource, srcSubresource, srcRect, format, resolveMode);
 }
 
-#if DXL_ENABLE_VIEW_INSTANCING()
+#if DXL_ENABLE_VIEW_INSTANCING
 void DXLCommandList::SetViewInstanceMask(uint32_t mask)
 {
     ToNative()->SetViewInstanceMask(mask);
@@ -1278,7 +1281,7 @@ HRESULT DXLDevice::CreateCommandList1(uint32_t nodeMask, D3D12_COMMAND_LIST_TYPE
     return ToNative()->CreateCommandList1(nodeMask, type, flags, riid, outCommandList);
 }
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 DXLCommandQueue DXLDevice::CreateCommandQueue(D3D12_COMMAND_QUEUE_DESC desc)
 {
@@ -1301,7 +1304,7 @@ DXLCommandList DXLDevice::CreateCommandList(D3D12_COMMAND_LIST_TYPE type, D3D12_
     return commandList;
 }
 
-#endif // DXL_ENABLE_EXTENSIONS()
+#endif // DXL_ENABLE_EXTENSIONS
 
 HRESULT DXLDevice::CreateComputePipelineState(const D3D12_COMPUTE_PIPELINE_STATE_DESC* desc, REFIID riid, void** outPipelineState)
 {
@@ -1323,7 +1326,7 @@ HRESULT DXLDevice::AddToStateObject(const D3D12_STATE_OBJECT_DESC* addition, DXL
     return ToNative()->AddToStateObject(addition, stateObjectToGrowFrom, riid, outNewStateObject);
 }
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 DXLPipelineState DXLDevice::CreateComputePSO(D3D12_COMPUTE_PIPELINE_STATE_DESC desc)
 {
@@ -1391,7 +1394,7 @@ DXLStateObject DXLDevice::AddToStateObject(D3D12_STATE_OBJECT_DESC addition, DXL
     return stateObject;
 }
 
-#endif // DXL_ENABLE_EXTENSIONS()
+#endif // DXL_ENABLE_EXTENSIONS
 
 HRESULT DXLDevice::CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_DESC* descriptorHeapDesc, REFIID riid, void** outHeap)
 {
@@ -1423,7 +1426,7 @@ HRESULT DXLDevice::CreateCommandSignature(const D3D12_COMMAND_SIGNATURE_DESC* de
     return ToNative()->CreateCommandSignature(desc, rootSignature, riid, outCommandSignature);
 }
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 DXLDescriptorHeap DXLDevice::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc)
 {
@@ -1470,7 +1473,7 @@ DXLCommandSignature DXLDevice::CreateCommandSignature(D3D12_COMMAND_SIGNATURE_DE
     return commandSignature;
 }
 
-#endif // DXL_ENABLE_EXTENSIONS()
+#endif // DXL_ENABLE_EXTENSIONS
 
 void DXLDevice::CreateConstantBufferView(const D3D12_CONSTANT_BUFFER_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor)
 {
@@ -1547,7 +1550,7 @@ HRESULT DXLDevice::CreateReservedResource2(const D3D12_RESOURCE_DESC* desc, D3D1
     return ToNative()->CreateReservedResource2(desc, initialLayout, optimizedClearValue, protectedSession, numCastableFormats, castableFormats, riid, outResource);
 }
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 DXLHeap DXLDevice::CreateHeap(D3D12_HEAP_DESC desc)
 {
@@ -1577,7 +1580,7 @@ DXLResource DXLDevice::CreateTiledResource(D3D12_RESOURCE_DESC desc, D3D12_BARRI
     return resource;
 }
 
-#endif // #if DXL_ENABLE_EXTENSIONS()
+#endif // #if DXL_ENABLE_EXTENSIONS
 
 void DXLDevice::GetResourceTiling(DXLResource tiledResource, uint32_t* outNumTilesForEntireResource, D3D12_PACKED_MIP_INFO* outPackedMipDesc, D3D12_TILE_SHAPE* outStandardTileShapeForNonPackedMips, uint32_t* numSubresourceTilings, uint32_t firstSubresourceTilingToGet, D3D12_SUBRESOURCE_TILING* outSubresourceTilingsForNonPackedMips)
 {
@@ -1629,12 +1632,16 @@ HRESULT DXLDevice::SetEventOnMultipleFenceCompletion(ID3D12Fence*const* fences, 
     return ToNative()->SetEventOnMultipleFenceCompletion(fences, fenceValues, numFences, flags, event);
 }
 
+#if DXL_ENABLE_EXTENSIONS
+
 DXLFence DXLDevice::CreateFence(uint64_t initialValue, D3D12_FENCE_FLAGS flags)
 {
     DXLFence fence;
     ToNative()->CreateFence(initialValue, flags, DXL_PPV_ARGS(&fence));
     return fence;
 }
+
+#endif // DXL_ENABLE_EXTENSIONS
 
 void DXLDevice::GetRaytracingAccelerationStructurePrebuildInfo(const D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS* desc, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO* outInfo)
 {
@@ -1656,7 +1663,7 @@ void DXLDevice::GetCopyableFootprints1(const D3D12_RESOURCE_DESC1* resourceDesc,
     ToNative()->GetCopyableFootprints1(resourceDesc, firstSubresource, numSubresources, baseOffset, layouts, numRows, rowSizeInBytes, totalBytes);
 }
 
-#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES
 
 HRESULT DXLDevice::SetStablePowerState(bool enable)
 {
@@ -1668,11 +1675,11 @@ HRESULT DXLDevice::SetBackgroundProcessingMode(D3D12_BACKGROUND_PROCESSING_MODE 
     return ToNative()->SetBackgroundProcessingMode(mode, measurementsAction, eventToSignalUponCompletion, outFurtherMeasurementsDesired);
 }
 
-#endif // DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+#endif // DXL_ENABLE_DEVELOPER_ONLY_FEATURES
 
 // == DXLDebug ======================================================
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 DXLSwapChain DXLSwapChain::Create(DXGI_SWAP_CHAIN_DESC desc, DXLCommandQueue presentQueue)
 {
@@ -1782,7 +1789,7 @@ HRESULT DXLSwapChain::GetLastPresentCount(uint32_t* outLastPresentCount)
     return ToNative()->GetLastPresentCount(outLastPresentCount);
 }
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 DXLResource DXLSwapChain::GetBuffer(uint32_t bufferIndex) const
 {
@@ -1833,9 +1840,9 @@ DXGI_MODE_ROTATION DXLSwapChain::GetRotation()
     return rotation;
 }
 
-#endif // DXL_ENABLE_EXTENSIONS()
+#endif // DXL_ENABLE_EXTENSIONS
 
-#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES
 
 // == DXLDebug ======================================================
 
@@ -1871,7 +1878,7 @@ void DXLDebug::SetEnableAutoName(bool enable)
 
 // == DXLDebugDevice ======================================================
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 DXLDebugDevice DXLDebugDevice::FromDevice(DXLDevice device)
 {
@@ -1909,7 +1916,7 @@ HRESULT DXLDebugDevice::GetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE type
 
 // == DXLDebugCommandQueue ======================================================
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 DXLDebugCommandQueue DXLDebugCommandQueue::FromCommandQueue(DXLCommandQueue commandQueue)
 {
@@ -1932,7 +1939,7 @@ void DXLDebugCommandQueue::AssertTextureLayout(DXLResource resource, uint32_t su
 
 // == DXLDebugCommandList ======================================================
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 DXLDebugCommandList DXLDebugCommandList::FromCommandList(DXLCommandList commandList)
 {
@@ -1975,7 +1982,7 @@ void DXLDebugCommandList::AssertTextureLayout(DXLResource resource, uint32_t sub
 
 // == DXLDebugInfoQueue ======================================================
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 DXLDebugInfoQueue DXLDebugInfoQueue::FromDevice(DXLDevice device)
 {
@@ -2006,9 +2013,9 @@ bool DXLDebugInfoQueue::GetMuteDebugOutput()
     return ToNative()->GetMuteDebugOutput();
 }
 
-#endif // DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+#endif // DXL_ENABLE_DEVELOPER_ONLY_FEATURES
 
-#if DXL_ENABLE_EXTENSIONS()
+#if DXL_ENABLE_EXTENSIONS
 
 static void DefaultDebugLayerCallback([[maybe_unused]] D3D12_MESSAGE_CATEGORY category, D3D12_MESSAGE_SEVERITY severity, [[maybe_unused]] D3D12_MESSAGE_ID ID, const char* description, [[maybe_unused]] void* context)
 {
@@ -2050,7 +2057,7 @@ CreateDeviceResult CreateDevice(CreateDeviceParams params)
     if (FAILED(hr))
         return { DXLDevice(), hr, "Failed to create a D3D12 device factory. Did you pass the wrong AgilitySDKPath?" };
 
-#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES
     if (params.EnableDebugLayer)
     {
         ComPtr<ID3D12Debug1> d3d12debug;
@@ -2075,7 +2082,7 @@ CreateDeviceResult CreateDevice(CreateDeviceParams params)
     if(options12.EnhancedBarriersSupported == false)
         return { DXLDevice(), E_FAIL, "The selected GPU does not support enhanced barriers, which is required for DXLatest" };
 
-#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES()
+#if DXL_ENABLE_DEVELOPER_ONLY_FEATURES
     {
         ComPtr<ID3D12InfoQueue1> infoQueue;
         if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue))))
@@ -2110,6 +2117,6 @@ void Release(DXLBase& base)
     }
 }
 
-#endif // DXL_ENABLE_EXTENSIONS()
+#endif // DXL_ENABLE_EXTENSIONS
 
 } // namespace dxl
