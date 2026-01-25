@@ -5,7 +5,7 @@
 #include "SingleTriangleVS.h"
 #include "SingleTrianglePS.h"
 
-using namespace dxl;
+using namespace DXL;
 using namespace DXLExampleHelpers;
 
 static constexpr uint32_t RenderLatency = 2;
@@ -40,7 +40,7 @@ static void Initialize()
     {
         const std::string agilitySDKPath = GetSampleAgilitySDKPath();
 
-        CreateDeviceResult result = dxl::CreateDevice({ .AgilitySDKPath = agilitySDKPath.c_str(), .EnableDebugLayer = true });
+        CreateDeviceResult result = DXL::CreateDevice({ .AgilitySDKPath = agilitySDKPath.c_str(), .EnableDebugLayer = true });
         if (!result.Device)
         {
             window.CreateMessageBox(MakeString("Failed to create D3D12 device: %s (hr=0x%x)", result.FailureReason, result.Result).c_str(), "SingleTriangle");
@@ -116,18 +116,18 @@ static void Initialize()
 
 static void Shutdown()
 {
-    dxl::Release(rootSignature);
-    dxl::Release(pso);
-    dxl::Release(rtvDescriptorHeap);
-    dxl::Release(frameFence);
-    dxl::Release(commandList);
-    dxl::Release(commandQueue);
+    DXL::Release(rootSignature);
+    DXL::Release(pso);
+    DXL::Release(rtvDescriptorHeap);
+    DXL::Release(frameFence);
+    DXL::Release(commandList);
+    DXL::Release(commandQueue);
     for (DXLCommandAllocator& commandAllocator: commandAllocators)
-        dxl::Release(commandAllocator);
+        DXL::Release(commandAllocator);
     for (DXLResource& buffer : swapChainBuffers)
-        dxl::Release(buffer);
-    dxl::Release(swapChain);
-    dxl::Release(device);
+        DXL::Release(buffer);
+    DXL::Release(swapChain);
+    DXL::Release(device);
 }
 
 static void Render()

@@ -12,7 +12,7 @@
 
 #define DXL_ARRAY_SIZE(x) ((sizeof(x) / sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 
-namespace dxl
+namespace DXL
 {
 
 using Microsoft::WRL::ComPtr;
@@ -174,7 +174,7 @@ void SetErrorCallback(ErrorCallbackFunction callback)
 #define DXL_HANDLE_HRESULT(hr) do { if (FAILED(hr) && errorCallback) errorCallback(__FUNCTION__, hr, ""); } while(0)
 #define DXL_HANDLE_HRESULT_MSG(hr, msg) do { if (FAILED(hr) && errorCallback) errorCallback(__FUNCTION__, hr, msg); } while(0)
 
-namespace helpers
+namespace Helpers
 {
 
 static D3D12_BLEND_DESC blendStateDescs[] =
@@ -413,7 +413,7 @@ D3D12_DEPTH_STENCIL_DESC2 DepthStateDesc(DepthState depthState)
     return depthStateDescs[uint32_t(depthState)];
 }
 
-} // namespace helpers
+} // namespace Helpers
 
 #endif // DXL_ENABLE_EXTENSIONS
 
@@ -2119,4 +2119,4 @@ void Release(DXLBase& base)
 
 #endif // DXL_ENABLE_EXTENSIONS
 
-} // namespace dxl
+} // namespace DXL

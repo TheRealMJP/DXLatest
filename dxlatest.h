@@ -31,7 +31,7 @@
 #define DXL_ENABLE_EXTENSIONS 1
 #endif
 
-namespace dxl
+namespace DXL
 {
 
 #if DXL_ENABLE_EXTENSIONS
@@ -39,7 +39,7 @@ namespace dxl
 using ErrorCallbackFunction = void(*)(const char* function, HRESULT hr, const char* message);
 void SetErrorCallback(ErrorCallbackFunction callback);
 
-namespace helpers
+namespace Helpers
 {
 
 enum class BlendState : uint32_t
@@ -84,7 +84,7 @@ D3D12_BLEND_DESC BlendStateDesc(BlendState blendState);
 D3D12_RASTERIZER_DESC2 RasterizerStateDesc(RasterizerState rasterizerState);
 D3D12_DEPTH_STENCIL_DESC2 DepthStateDesc(DepthState depthState);
 
-} // namespace helpers
+} // namespace Helpers
 
 template<typename T> struct Span
 {
@@ -549,11 +549,11 @@ struct DXL_SIMPLE_GRAPHICS_PSO_DESC
 {
     DXLRootSignature RootSignature;
     D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    D3D12_RASTERIZER_DESC2 RasterizerState = helpers::RasterizerStateDesc(helpers::RasterizerState::NoCull);
+    D3D12_RASTERIZER_DESC2 RasterizerState = Helpers::RasterizerStateDesc(Helpers::RasterizerState::NoCull);
     D3D12_SHADER_BYTECODE VertexShaderByteCode = { };
     D3D12_SHADER_BYTECODE PixelShaderByteCode = { };
-    D3D12_BLEND_DESC BlendState = helpers::BlendStateDesc(helpers::BlendState::Opaque);
-    D3D12_DEPTH_STENCIL_DESC2 DepthStencilState = helpers::DepthStateDesc(helpers::DepthState::Disabled);
+    D3D12_BLEND_DESC BlendState = Helpers::BlendStateDesc(Helpers::BlendState::Opaque);
+    D3D12_DEPTH_STENCIL_DESC2 DepthStencilState = Helpers::DepthStateDesc(Helpers::DepthState::Disabled);
     DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_UNKNOWN;
     D3D12_RT_FORMAT_ARRAY RenderTargetFormats = { };
 };
@@ -562,12 +562,12 @@ struct DXL_MESH_SHADER_GRAPHICS_PSO_DESC
 {
     DXLRootSignature RootSignature;
     D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    D3D12_RASTERIZER_DESC2 RasterizerState = helpers::RasterizerStateDesc(helpers::RasterizerState::NoCull);
+    D3D12_RASTERIZER_DESC2 RasterizerState = Helpers::RasterizerStateDesc(Helpers::RasterizerState::NoCull);
     D3D12_SHADER_BYTECODE AmplificationShaderByteCode = { };
     D3D12_SHADER_BYTECODE MeshShaderByteCode = { };
     D3D12_SHADER_BYTECODE PixelShaderByteCode = { };
-    D3D12_BLEND_DESC BlendState = helpers::BlendStateDesc(helpers::BlendState::Opaque);
-    D3D12_DEPTH_STENCIL_DESC2 DepthStencilState = helpers::DepthStateDesc(helpers::DepthState::Disabled);
+    D3D12_BLEND_DESC BlendState = Helpers::BlendStateDesc(Helpers::BlendState::Opaque);
+    D3D12_DEPTH_STENCIL_DESC2 DepthStencilState = Helpers::DepthStateDesc(Helpers::DepthState::Disabled);
     DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_UNKNOWN;
     D3D12_RT_FORMAT_ARRAY RenderTargetFormats = { };
 };
@@ -939,4 +939,4 @@ template<typename TDXLInterface> void** GetPPVArg(TDXLInterface* ptrToInterface)
 
 #endif  // DXL_ENABLE_EXTENSIONS
 
-} // namespace dxl
+} // namespace DXL
