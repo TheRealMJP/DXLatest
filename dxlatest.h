@@ -6,7 +6,7 @@
 #include <dxgi.h>
 #include <dxgi1_6.h>
 
-#define DXL_STRUCT_BOILERPLATE(DXLStruct, D3D12Struct)  \
+#define DXL_STRUCT_BOILERPLATE(IDXLStruct, D3D12Struct)  \
     DXLStruct() = default;                              \
     DXLStruct(D3D12Struct d3d12Struct) { memcpy(this, &d3d12Struct, sizeof(DXLStruct)); }        \
     operator D3D12Struct() const { D3D12Struct d3d12Struct = { }; memcpy(&d3d12Struct, this, sizeof(DXLStruct)); return d3d12Struct; }
@@ -97,26 +97,26 @@ template<typename T> struct Span
 
 #endif // DXL_ENABLE_EXTENSIONS
 
-#define DXL_INTERFACE_BOILERPLATE(DXLClass, D3D12Interface) \
-    DXLClass() = default;   \
-    DXLClass(D3D12Interface* d3d12Interface) { nativeInterface = d3d12Interface; }   \
+#define DXL_INTERFACE_BOILERPLATE(DXLInterface, D3D12Interface) \
+    DXLInterface() = default;   \
+    DXLInterface(D3D12Interface* d3d12Interface) { nativeInterface = d3d12Interface; }   \
     D3D12Interface* ToNative() const { return reinterpret_cast<D3D12Interface*>(nativeInterface); }     \
     D3D12Interface** AddressOfNative() { return reinterpret_cast<D3D12Interface**>(&nativeInterface); }     \
     static IID InterfaceID() { return __uuidof(D3D12Interface); }   \
-    DXLClass* operator->() { return this; }     \
-    const DXLClass* operator->() const { return this; }     \
+    DXLInterface* operator->() { return this; }     \
+    const DXLInterface* operator->() const { return this; }     \
     operator D3D12Interface*() const { return ToNative(); } \
     bool operator==(D3D12Interface* other) const { return nativeInterface == other; }    \
-    bool operator==(DXLClass other) const { return nativeInterface == other.nativeInterface; }    \
+    bool operator==(DXLInterface other) const { return nativeInterface == other.nativeInterface; }    \
     bool operator!=(D3D12Interface* other) const { return nativeInterface != other; }    \
-    bool operator!=(DXLClass other) const { return nativeInterface != other.nativeInterface; }
+    bool operator!=(DXLInterface other) const { return nativeInterface != other.nativeInterface; }
 
-class DXLBase
+class IDXLBase
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLBase, IUnknown);
+    DXL_INTERFACE_BOILERPLATE(IDXLBase, IUnknown);
 
     HRESULT QueryInterface(REFIID riid, void** outObject);
     template<typename T> T* QueryInterface()
@@ -139,12 +139,12 @@ protected:
     IUnknown* nativeInterface = nullptr;
 };
 
-class DXLObject : public DXLBase
+class IDXLObject : public IDXLBase
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLObject, ID3D12Object);
+    DXL_INTERFACE_BOILERPLATE(IDXLObject, ID3D12Object);
 
     HRESULT GetPrivateData(REFGUID guid, uint32_t* outDataSize, void* outData) const;
     HRESULT SetPrivateData(REFGUID guid, uint32_t dataSize, const void *data);
@@ -156,48 +156,48 @@ public:
 #endif
 };
 
-class DXLDeviceChild : public DXLObject
+class IDXLDeviceChild : public IDXLObject
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLDeviceChild, ID3D12DeviceChild);
+    DXL_INTERFACE_BOILERPLATE(IDXLDeviceChild, ID3D12DeviceChild);
 
     HRESULT GetDevice(REFIID riid, void** outDevice);
 };
 
-class DXLRootSignature : public DXLDeviceChild
+class IDXLRootSignature : public IDXLDeviceChild
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLRootSignature, ID3D12RootSignature);
+    DXL_INTERFACE_BOILERPLATE(IDXLRootSignature, ID3D12RootSignature);
 };
 
-class DXLPageable : public DXLDeviceChild
+class IDXLPageable : public IDXLDeviceChild
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLPageable, ID3D12Pageable);
+    DXL_INTERFACE_BOILERPLATE(IDXLPageable, ID3D12Pageable);
 };
 
-class DXLHeap : public DXLPageable
+class IDXLHeap : public IDXLPageable
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLHeap, ID3D12Heap1);
+    DXL_INTERFACE_BOILERPLATE(IDXLHeap, ID3D12Heap1);
 
     D3D12_HEAP_DESC GetDesc() const;
 };
 
-class DXLResource : public DXLPageable
+class IDXLResource : public IDXLPageable
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLResource, ID3D12Resource2);
+    DXL_INTERFACE_BOILERPLATE(IDXLResource, ID3D12Resource2);
 
     HRESULT Map(uint32_t subresource, const D3D12_RANGE* readRange, void** outData);
     void Unmap(uint32_t subresource, const D3D12_RANGE* writtenRange);
@@ -217,21 +217,21 @@ public:
     HRESULT GetHeapProperties(D3D12_HEAP_PROPERTIES* outHeapProperties, D3D12_HEAP_FLAGS* outHeapFlags) const;
 };
 
-class DXLCommandAllocator : public DXLPageable
+class IDXLCommandAllocator : public IDXLPageable
 {
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLCommandAllocator, ID3D12CommandAllocator);
+    DXL_INTERFACE_BOILERPLATE(IDXLCommandAllocator, ID3D12CommandAllocator);
 
     HRESULT Reset();
 };
 
-class DXLFence : public DXLPageable
+class IDXLFence : public IDXLPageable
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLFence, ID3D12Fence1);
+    DXL_INTERFACE_BOILERPLATE(IDXLFence, ID3D12Fence1);
 
     uint64_t GetCompletedValue() const;
     HRESULT SetEventOnCompletion(uint64_t value, HANDLE event);
@@ -244,32 +244,32 @@ public:
 #endif
 };
 
-class DXLPipelineState : public DXLPageable
+class IDXLPipelineState : public IDXLPageable
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLPipelineState, ID3D12PipelineState);
+    DXL_INTERFACE_BOILERPLATE(IDXLPipelineState, ID3D12PipelineState);
 
     /*HRESULT GetRootSignature(REFIID riid, void** outRootSignature) const;
 #if DXL_ENABLE_EXTENSIONS
-    DXLRootSignature GetRootSignature() const;
+    IDXLRootSignature GetRootSignature() const;
 #endif*/
 };
 
-class DXLStateObject : public DXLPageable
+class IDXLStateObject : public IDXLPageable
 {
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLStateObject, ID3D12StateObject);
+    DXL_INTERFACE_BOILERPLATE(IDXLStateObject, ID3D12StateObject);
 };
 
-class DXLStateObjectProperties : public DXLBase
+class IDXLStateObjectProperties : public IDXLBase
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLStateObjectProperties, ID3D12StateObjectProperties2);
+    DXL_INTERFACE_BOILERPLATE(IDXLStateObjectProperties, ID3D12StateObjectProperties2);
 
     void* GetShaderIdentifier(const wchar_t* exportName);
     uint64_t GetShaderStackSize(const wchar_t* exportName);
@@ -281,20 +281,20 @@ public:
     void* GetShaderIdentifier(const char* exportName);
     uint64_t GetShaderStackSize(const char* exportName);
     D3D12_PROGRAM_IDENTIFIER GetProgramIdentifier(const char* programName);
-    DXLRootSignature GetGlobalRootSignatureForProgram(const char* programName);
-    DXLRootSignature GetGlobalRootSignatureForShader(const char* exportName);
+    IDXLRootSignature GetGlobalRootSignatureForProgram(const char* programName);
+    IDXLRootSignature GetGlobalRootSignatureForShader(const char* exportName);
 #endif
 
     uint64_t GetPipelineStackSize();
     void SetPipelineStackSize(uint64_t pipelineStackSizeInBytes);
 };
 
-class DXLWorkGraphProperties : public DXLBase
+class IDXLWorkGraphProperties : public IDXLBase
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLWorkGraphProperties, ID3D12WorkGraphProperties);
+    DXL_INTERFACE_BOILERPLATE(IDXLWorkGraphProperties, ID3D12WorkGraphProperties);
 
     uint32_t GetNumWorkGraphs();
     const wchar_t* GetProgramName(uint32_t workGraphIndex);
@@ -315,46 +315,46 @@ public:
     uint32_t GetEntrypointRecordAlignmentInBytes(uint32_t workGraphIndex, uint32_t entrypointIndex);
 };
 
-class DXLDescriptorHeap : public DXLPageable
+class IDXLDescriptorHeap : public IDXLPageable
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLDescriptorHeap, ID3D12DescriptorHeap);
+    DXL_INTERFACE_BOILERPLATE(IDXLDescriptorHeap, ID3D12DescriptorHeap);
 
     D3D12_DESCRIPTOR_HEAP_DESC GetDesc();
     D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandleForHeapStart();
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandleForHeapStart();
 };
 
-class DXLQueryHeap : public DXLPageable
+class IDXLQueryHeap : public IDXLPageable
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLQueryHeap, ID3D12QueryHeap);
+    DXL_INTERFACE_BOILERPLATE(IDXLQueryHeap, ID3D12QueryHeap);
 };
 
-class DXLCommandSignature : public DXLPageable
+class IDXLCommandSignature : public IDXLPageable
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLCommandSignature, ID3D12CommandSignature);
+    DXL_INTERFACE_BOILERPLATE(IDXLCommandSignature, ID3D12CommandSignature);
 };
 
-class DXLCommandList : public DXLDeviceChild
+class IDXLCommandList : public IDXLDeviceChild
 {
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLCommandList, ID3D12GraphicsCommandList10);
+    DXL_INTERFACE_BOILERPLATE(IDXLCommandList, ID3D12GraphicsCommandList10);
 
     D3D12_COMMAND_LIST_TYPE GetType() const;
 
     HRESULT Close();
-    HRESULT Reset(DXLCommandAllocator allocator, DXLPipelineState pipelineState = DXLPipelineState());
+    HRESULT Reset(IDXLCommandAllocator allocator, IDXLPipelineState pipelineState = IDXLPipelineState());
 
-    void ClearState(DXLPipelineState pipelineState = DXLPipelineState());
+    void ClearState(IDXLPipelineState pipelineState = IDXLPipelineState());
 
     void DrawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount, uint32_t startVertexLocation, uint32_t startInstanceLocation);
     void DrawIndexedInstanced(uint32_t indexCountPerInstance, uint32_t instanceCount, uint32_t startIndexLocation, int32_t baseVertexLocation, uint32_t startInstanceLocation);
@@ -364,10 +364,10 @@ public:
     void DispatchMesh(uint32_t threadGroupCountX, uint32_t threadGroupCountY, uint32_t threadGroupCountZ);
     void DispatchGraph(const D3D12_DISPATCH_GRAPH_DESC* desc);
 
-    void CopyBufferRegion(DXLResource dstBuffer, uint64_t dstOffset, DXLResource srcBuffer, uint64_t srcOffset, uint64_t numBytes);
+    void CopyBufferRegion(IDXLResource dstBuffer, uint64_t dstOffset, IDXLResource srcBuffer, uint64_t srcOffset, uint64_t numBytes);
     void CopyTextureRegion(const D3D12_TEXTURE_COPY_LOCATION* dst, uint32_t dstX, uint32_t dstY, uint32_t dstZ, const D3D12_TEXTURE_COPY_LOCATION* src, const D3D12_BOX* srcBox);
-    void CopyResource(DXLResource dstResource, DXLResource srcResource);
-    void CopyTiles(DXLResource tiledResource, const D3D12_TILED_RESOURCE_COORDINATE* tileRegionStartCoordinate, const D3D12_TILE_REGION_SIZE* tileRegionSize, DXLResource buffer, uint64_t bufferStartOffsetInBytes, D3D12_TILE_COPY_FLAGS flags);
+    void CopyResource(IDXLResource dstResource, IDXLResource srcResource);
+    void CopyTiles(IDXLResource tiledResource, const D3D12_TILED_RESOURCE_COORDINATE* tileRegionStartCoordinate, const D3D12_TILE_REGION_SIZE* tileRegionSize, IDXLResource buffer, uint64_t bufferStartOffsetInBytes, D3D12_TILE_COPY_FLAGS flags);
 
     void Barrier(uint32_t numBarrierGroups, const D3D12_BARRIER_GROUP* barrierGroups);
 #if DXL_ENABLE_EXTENSIONS
@@ -376,7 +376,7 @@ public:
     void Barrier(D3D12_TEXTURE_BARRIER barrier);
 #endif
 
-    void ResolveSubresource(DXLResource dstResource, uint32_t dstSubresource, DXLResource srcResource, uint32_t srcSubresource, DXGI_FORMAT format);
+    void ResolveSubresource(IDXLResource dstResource, uint32_t dstSubresource, IDXLResource srcResource, uint32_t srcSubresource, DXGI_FORMAT format);
 
     void IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY primitiveTopology);
     void IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view);
@@ -393,23 +393,23 @@ public:
 #endif
 
     void RSSetShadingRate(D3D12_SHADING_RATE baseShadingRate, const D3D12_SHADING_RATE_COMBINER* combiners);
-    void RSSetShadingRateImage(DXLResource shadingRateImage);
+    void RSSetShadingRateImage(IDXLResource shadingRateImage);
 
     void OMSetBlendFactor(const float blendFactor[4]);
     void OMSetStencilRef(uint32_t stencilRef);
     void OMSetFrontAndBackStencilRef(uint32_t frontStencilRef, uint32_t backStencilRef);
 
-    void SetPipelineState(DXLPipelineState pipelineState);
-    void SetPipelineState1(DXLStateObject stateObject);
+    void SetPipelineState(IDXLPipelineState pipelineState);
+    void SetPipelineState1(IDXLStateObject stateObject);
     void SetProgram(const D3D12_SET_PROGRAM_DESC* desc);
 
     void SetDescriptorHeaps(uint32_t numDescriptorHeaps, ID3D12DescriptorHeap*const* descriptorHeaps);
 #if DXL_ENABLE_EXTENSIONS
-    void SetDescriptorHeaps(DXLDescriptorHeap srvUavCbvHeap, DXLDescriptorHeap samplerHeap = DXLDescriptorHeap());
+    void SetDescriptorHeaps(IDXLDescriptorHeap srvUavCbvHeap, IDXLDescriptorHeap samplerHeap = IDXLDescriptorHeap());
 #endif
 
-    void SetComputeRootSignature(DXLRootSignature rootSignature);
-    void SetGraphicsRootSignature(DXLRootSignature rootSignature);
+    void SetComputeRootSignature(IDXLRootSignature rootSignature);
+    void SetGraphicsRootSignature(IDXLRootSignature rootSignature);
 
 #if DXL_ENABLE_DESCRIPTOR_TABLES
     void SetComputeRootDescriptorTable(uint32_t rootParameterIndex, D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor);
@@ -432,22 +432,22 @@ public:
     void OMSetRenderTargets(uint32_t numRenderTargetDescriptors, const D3D12_CPU_DESCRIPTOR_HANDLE* renderTargetDescriptors, bool rtIsSingleHandleToDescriptorRange, const D3D12_CPU_DESCRIPTOR_HANDLE* depthStencilDescriptor);
     void ClearDepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView, D3D12_CLEAR_FLAGS clearFlags,float depth, uint8_t stencil, uint32_t numRects, const D3D12_RECT* rects);
     void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView, const float colorRGBA[4], uint32_t numRects, const D3D12_RECT* rects);
-    void DiscardResource(DXLResource resource, const D3D12_DISCARD_REGION* region);
+    void DiscardResource(IDXLResource resource, const D3D12_DISCARD_REGION* region);
 
     void BeginRenderPass(uint32_t numRenderTargets, const D3D12_RENDER_PASS_RENDER_TARGET_DESC* renderTargets, const D3D12_RENDER_PASS_DEPTH_STENCIL_DESC* depthStencil, D3D12_RENDER_PASS_FLAGS flags);
     void EndRenderPass();
 
 #if DXL_ENABLE_CLEAR_UAV
-    void ClearUnorderedAccessViewUint(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const uint32_t values[4], uint32_t numRects, const D3D12_RECT* rects);
-    void ClearUnorderedAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, DXLResource resource, const float values[4], uint32_t numRects, const D3D12_RECT* rects);
+    void ClearUnorderedAccessViewUint(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, IDXLResource resource, const uint32_t values[4], uint32_t numRects, const D3D12_RECT* rects);
+    void ClearUnorderedAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE viewGPUHandleInCurrentHeap, D3D12_CPU_DESCRIPTOR_HANDLE viewCPUHandle, IDXLResource resource, const float values[4], uint32_t numRects, const D3D12_RECT* rects);
 #endif
 
-    void BeginQuery(DXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t index);
-    void EndQuery(DXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t index);
-    void ResolveQueryData(DXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t startIndex, uint32_t numQueries, DXLResource destinationBuffer, uint64_t alignedDestinationBufferOffset);
-    void SetPredication(DXLResource buffer, uint64_t alignedBufferOffset, D3D12_PREDICATION_OP operation);
+    void BeginQuery(IDXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t index);
+    void EndQuery(IDXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t index);
+    void ResolveQueryData(IDXLQueryHeap queryHeap, D3D12_QUERY_TYPE type, uint32_t startIndex, uint32_t numQueries, IDXLResource destinationBuffer, uint64_t alignedDestinationBufferOffset);
+    void SetPredication(IDXLResource buffer, uint64_t alignedBufferOffset, D3D12_PREDICATION_OP operation);
 
-    void ExecuteIndirect(DXLCommandSignature commandSignature, uint32_t maxCommandCount, DXLResource argumentBuffer, uint64_t argumentBufferOffset, DXLResource countBuffer, uint64_t countBufferOffset);
+    void ExecuteIndirect(IDXLCommandSignature commandSignature, uint32_t maxCommandCount, IDXLResource argumentBuffer, uint64_t argumentBufferOffset, IDXLResource countBuffer, uint64_t countBufferOffset);
 
     void AtomicCopyBufferUINT(
         ID3D12Resource* dstBuffer,
@@ -461,9 +461,9 @@ public:
 
     // UINT64 is only valid on UMA architectures
     void AtomicCopyBufferUINT64(
-        DXLResource dstBuffer,
+        IDXLResource dstBuffer,
         uint64_t dstOffset,
-        DXLResource srcBuffer,
+        IDXLResource srcBuffer,
         uint64_t srcOffset,
         uint32_t dependencies, // 0 Dependencies means only the dst buffer offset is synchronized
         ID3D12Resource*const* dependentResources,
@@ -475,11 +475,11 @@ public:
     void SetSamplePositions(uint32_t numSamplesPerPixel, uint32_t numPixels, D3D12_SAMPLE_POSITION* samplePositions);
 
     void ResolveSubresourceRegion(
-        DXLResource dstResource,
+        IDXLResource dstResource,
         uint32_t dstSubresource,
         uint32_t dstX,
         uint32_t dstY,
-        DXLResource srcResource,
+        IDXLResource srcResource,
         uint32_t srcSubresource,
         D3D12_RECT* srcRect,
         DXGI_FORMAT format,
@@ -497,14 +497,14 @@ public:
     void CopyRaytracingAccelerationStructure(D3D12_GPU_VIRTUAL_ADDRESS destAccelerationStructureData, D3D12_GPU_VIRTUAL_ADDRESS sourceAccelerationStructureData, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE mode);
 };
 
-class DXLCommandQueue : public DXLPageable
+class IDXLCommandQueue : public IDXLPageable
 {
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLCommandQueue, ID3D12CommandQueue);
+    DXL_INTERFACE_BOILERPLATE(IDXLCommandQueue, ID3D12CommandQueue);
 
     void UpdateTileMappings(
-        DXLResource resource,
+        IDXLResource resource,
         uint32_t numResourceRegions,
         const D3D12_TILED_RESOURCE_COORDINATE* resourceRegionStartCoordinates,
         const D3D12_TILE_REGION_SIZE* resourceRegionSizes,
@@ -517,9 +517,9 @@ public:
     );
 
     void CopyTileMappings(
-        DXLResource dstResource,
+        IDXLResource dstResource,
         const D3D12_TILED_RESOURCE_COORDINATE* dstRegionStartCoordinate,
-        DXLResource srcResource,
+        IDXLResource srcResource,
         const D3D12_TILED_RESOURCE_COORDINATE* srcRegionStartCoordinate,
         const D3D12_TILE_REGION_SIZE* regionSize,
         D3D12_TILE_MAPPING_FLAGS flags
@@ -527,8 +527,8 @@ public:
 
     void ExecuteCommandLists(uint32_t numCommandLists, ID3D12CommandList*const* commandLists);
 
-    HRESULT Signal(DXLFence fence, uint64_t value);
-    HRESULT Wait(DXLFence fence, uint64_t value);
+    HRESULT Signal(IDXLFence fence, uint64_t value);
+    HRESULT Wait(IDXLFence fence, uint64_t value);
 
     HRESULT GetTimestampFrequency(uint64_t* outFrequency) const;
 
@@ -547,7 +547,7 @@ public:
 
 struct DXL_SIMPLE_GRAPHICS_PSO_DESC
 {
-    DXLRootSignature RootSignature;
+    IDXLRootSignature RootSignature;
     D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     D3D12_RASTERIZER_DESC2 RasterizerState = Helpers::RasterizerStateDesc(Helpers::RasterizerState::NoCull);
     D3D12_SHADER_BYTECODE VertexShaderByteCode = { };
@@ -560,7 +560,7 @@ struct DXL_SIMPLE_GRAPHICS_PSO_DESC
 
 struct DXL_MESH_SHADER_GRAPHICS_PSO_DESC
 {
-    DXLRootSignature RootSignature;
+    IDXLRootSignature RootSignature;
     D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     D3D12_RASTERIZER_DESC2 RasterizerState = Helpers::RasterizerStateDesc(Helpers::RasterizerState::NoCull);
     D3D12_SHADER_BYTECODE AmplificationShaderByteCode = { };
@@ -574,12 +574,12 @@ struct DXL_MESH_SHADER_GRAPHICS_PSO_DESC
 
 #endif
 
-class DXLDevice : public DXLObject
+class IDXLDevice : public IDXLObject
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLDevice, ID3D12Device14);
+    DXL_INTERFACE_BOILERPLATE(IDXLDevice, ID3D12Device14);
 
     uint32_t GetNodeCount();
     LUID GetAdapterLuid();
@@ -591,24 +591,24 @@ public:
     HRESULT CreateCommandList1(uint32_t nodeMask, D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags, REFIID riid, void** outCommandList);
 
 #if DXL_ENABLE_EXTENSIONS
-    DXLCommandQueue CreateCommandQueue(D3D12_COMMAND_QUEUE_DESC desc);
-    DXLCommandAllocator CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type);
-    DXLCommandList CreateCommandList(D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags = D3D12_COMMAND_LIST_FLAG_NONE);
+    IDXLCommandQueue CreateCommandQueue(D3D12_COMMAND_QUEUE_DESC desc);
+    IDXLCommandAllocator CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE type);
+    IDXLCommandList CreateCommandList(D3D12_COMMAND_LIST_TYPE type, D3D12_COMMAND_LIST_FLAGS flags = D3D12_COMMAND_LIST_FLAG_NONE);
 #endif
 
     HRESULT CreateComputePipelineState(const D3D12_COMPUTE_PIPELINE_STATE_DESC* desc, REFIID riid, void** outPipelineState);
     HRESULT CreatePipelineState(const D3D12_PIPELINE_STATE_STREAM_DESC* desc, REFIID riid, void** outPipelineState);
     HRESULT CreateStateObject(const D3D12_STATE_OBJECT_DESC* desc, REFIID riid, void** outStateObject);
-    HRESULT AddToStateObject(const D3D12_STATE_OBJECT_DESC* addition, DXLStateObject stateObjectToGrowFrom, REFIID riid, void** outNewStateObject);
+    HRESULT AddToStateObject(const D3D12_STATE_OBJECT_DESC* addition, IDXLStateObject stateObjectToGrowFrom, REFIID riid, void** outNewStateObject);
 
 #if DXL_ENABLE_EXTENSIONS
-    DXLPipelineState CreateComputePSO(D3D12_COMPUTE_PIPELINE_STATE_DESC desc);
-    DXLPipelineState CreateComputePSO(DXLRootSignature rootSignature, const void* byteCode, size_t byteCodeLength);
-    DXLPipelineState CreateGraphicsPSO(D3D12_PIPELINE_STATE_STREAM_DESC desc);
-    DXLPipelineState CreateGraphicsPSO(DXL_SIMPLE_GRAPHICS_PSO_DESC desc);
-    DXLPipelineState CreateGraphicsPSO(DXL_MESH_SHADER_GRAPHICS_PSO_DESC desc);
-    DXLStateObject CreateStateObject(D3D12_STATE_OBJECT_DESC desc);
-    DXLStateObject AddToStateObject(D3D12_STATE_OBJECT_DESC addition, DXLStateObject stateObjectToGrowFrom);
+    IDXLPipelineState CreateComputePSO(D3D12_COMPUTE_PIPELINE_STATE_DESC desc);
+    IDXLPipelineState CreateComputePSO(IDXLRootSignature rootSignature, const void* byteCode, size_t byteCodeLength);
+    IDXLPipelineState CreateGraphicsPSO(D3D12_PIPELINE_STATE_STREAM_DESC desc);
+    IDXLPipelineState CreateGraphicsPSO(DXL_SIMPLE_GRAPHICS_PSO_DESC desc);
+    IDXLPipelineState CreateGraphicsPSO(DXL_MESH_SHADER_GRAPHICS_PSO_DESC desc);
+    IDXLStateObject CreateStateObject(D3D12_STATE_OBJECT_DESC desc);
+    IDXLStateObject AddToStateObject(D3D12_STATE_OBJECT_DESC addition, IDXLStateObject stateObjectToGrowFrom);
 #endif
 
     HRESULT CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_DESC* descriptorHeapDesc, REFIID riid, void** outHeap);
@@ -619,21 +619,21 @@ public:
 
     HRESULT CreateQueryHeap(const D3D12_QUERY_HEAP_DESC* desc, REFIID riid, void** outHeap);
 
-    HRESULT CreateCommandSignature(const D3D12_COMMAND_SIGNATURE_DESC* desc, DXLRootSignature rootSignature, REFIID riid, void** outCommandSignature);
+    HRESULT CreateCommandSignature(const D3D12_COMMAND_SIGNATURE_DESC* desc, IDXLRootSignature rootSignature, REFIID riid, void** outCommandSignature);
 
 #if DXL_ENABLE_EXTENSIONS
-    DXLDescriptorHeap CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc);
-    DXLRootSignature CreateRootSignature(D3D12_ROOT_SIGNATURE_DESC2 rootSignatureDesc);
-    DXLQueryHeap CreateQueryHeap(D3D12_QUERY_HEAP_DESC desc);
-    DXLCommandSignature CreateCommandSignature(D3D12_COMMAND_SIGNATURE_DESC desc, DXLRootSignature rootSignature);
+    IDXLDescriptorHeap CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc);
+    IDXLRootSignature CreateRootSignature(D3D12_ROOT_SIGNATURE_DESC2 rootSignatureDesc);
+    IDXLQueryHeap CreateQueryHeap(D3D12_QUERY_HEAP_DESC desc);
+    IDXLCommandSignature CreateCommandSignature(D3D12_COMMAND_SIGNATURE_DESC desc, IDXLRootSignature rootSignature);
 #endif
 
     void CreateConstantBufferView(const D3D12_CONSTANT_BUFFER_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
-    void CreateShaderResourceView(DXLResource resource, const D3D12_SHADER_RESOURCE_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
-    void CreateUnorderedAccessView(DXLResource resource, DXLResource counterResource, const D3D12_UNORDERED_ACCESS_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
-    void CreateSamplerFeedbackUnorderedAccessView(DXLResource targetedResource, DXLResource feedbackResource, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
-    void CreateRenderTargetView(DXLResource resource, const D3D12_RENDER_TARGET_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
-    void CreateDepthStencilView(DXLResource resource, const D3D12_DEPTH_STENCIL_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
+    void CreateShaderResourceView(IDXLResource resource, const D3D12_SHADER_RESOURCE_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
+    void CreateUnorderedAccessView(IDXLResource resource, IDXLResource counterResource, const D3D12_UNORDERED_ACCESS_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
+    void CreateSamplerFeedbackUnorderedAccessView(IDXLResource targetedResource, IDXLResource feedbackResource, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
+    void CreateRenderTargetView(IDXLResource resource, const D3D12_RENDER_TARGET_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
+    void CreateDepthStencilView(IDXLResource resource, const D3D12_DEPTH_STENCIL_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
     void CreateSampler2(const D3D12_SAMPLER_DESC2* desc, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptor);
 
     D3D12_RESOURCE_ALLOCATION_INFO GetResourceAllocationInfo3(
@@ -676,7 +676,7 @@ public:
     );
 
     HRESULT CreatePlacedResource2(
-        DXLHeap heap,
+        IDXLHeap heap,
         uint64_t heapOffset,
         const D3D12_RESOURCE_DESC1* desc,
         D3D12_BARRIER_LAYOUT initialLayout,
@@ -699,9 +699,9 @@ public:
     );
 
 #if DXL_ENABLE_EXTENSIONS
-    DXLHeap CreateHeap(D3D12_HEAP_DESC desc);
+    IDXLHeap CreateHeap(D3D12_HEAP_DESC desc);
 
-    DXLResource CreateCommittedResource(
+    IDXLResource CreateCommittedResource(
         D3D12_HEAP_PROPERTIES heapProperties,
         D3D12_HEAP_FLAGS heapFlags,
         D3D12_RESOURCE_DESC1 desc,
@@ -710,8 +710,8 @@ public:
         Span<const DXGI_FORMAT> castableFormats = Span<const DXGI_FORMAT>()
      );
 
-    DXLResource CreatePlacedResource(
-        DXLHeap heap,
+    IDXLResource CreatePlacedResource(
+        IDXLHeap heap,
         uint64_t heapOffset,
         D3D12_RESOURCE_DESC1 desc,
         D3D12_BARRIER_LAYOUT initialLayout = D3D12_BARRIER_LAYOUT_UNDEFINED,
@@ -719,7 +719,7 @@ public:
         Span<const DXGI_FORMAT> castableFormats = Span<const DXGI_FORMAT>()
     );
 
-    DXLResource CreateTiledResource(
+    IDXLResource CreateTiledResource(
         D3D12_RESOURCE_DESC desc,
         D3D12_BARRIER_LAYOUT initialLayout = D3D12_BARRIER_LAYOUT_UNDEFINED,
         const D3D12_CLEAR_VALUE* optimizedClearValue = nullptr,
@@ -728,7 +728,7 @@ public:
 #endif
 
     void GetResourceTiling(
-        DXLResource tiledResource,
+        IDXLResource tiledResource,
         uint32_t* outNumTilesForEntireResource,
         D3D12_PACKED_MIP_INFO* outPackedMipDesc,
         D3D12_TILE_SHAPE* outStandardTileShapeForNonPackedMips,
@@ -737,7 +737,7 @@ public:
         D3D12_SUBRESOURCE_TILING* outSubresourceTilingsForNonPackedMips
     );
 
-    HRESULT CreateSharedHandle(DXLDeviceChild object, const SECURITY_ATTRIBUTES* attributes, uint32_t access, const wchar_t* name, HANDLE* outHandle);
+    HRESULT CreateSharedHandle(IDXLDeviceChild object, const SECURITY_ATTRIBUTES* attributes, uint32_t access, const wchar_t* name, HANDLE* outHandle);
     HRESULT OpenSharedHandle(HANDLE ntHandle, REFIID riid, void** outObj);
     HRESULT OpenSharedHandleByName(const wchar_t* name, uint32_t access, HANDLE* outHandle);
 
@@ -750,7 +750,7 @@ public:
     HRESULT SetEventOnMultipleFenceCompletion(ID3D12Fence*const* fences, const uint64_t* fenceValues, uint32_t numFences, D3D12_MULTIPLE_FENCE_WAIT_FLAGS flags, HANDLE event);
 
 #if DXL_ENABLE_EXTENSIONS
-    DXLFence CreateFence(uint64_t initialValue, D3D12_FENCE_FLAGS flags = D3D12_FENCE_FLAG_NONE);
+    IDXLFence CreateFence(uint64_t initialValue, D3D12_FENCE_FLAGS flags = D3D12_FENCE_FLAG_NONE);
 #endif
 
     void GetRaytracingAccelerationStructurePrebuildInfo(const D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS* desc, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO* outInfo);
@@ -764,15 +764,15 @@ public:
 #endif
 };
 
-class DXLSwapChain : public DXLBase
+class IDXLSwapChain : public IDXLBase
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLSwapChain, IDXGISwapChain4);
+    DXL_INTERFACE_BOILERPLATE(IDXLSwapChain, IDXGISwapChain4);
 
 #if DXL_ENABLE_EXTENSIONS
-    static DXLSwapChain Create(DXGI_SWAP_CHAIN_DESC desc, DXLCommandQueue presentQueue);
+    static IDXLSwapChain Create(DXGI_SWAP_CHAIN_DESC desc, IDXLCommandQueue presentQueue);
 #endif
 
     HRESULT Present(uint32_t syncInterval, uint32_t presentFlags);
@@ -802,7 +802,7 @@ public:
     HRESULT GetLastPresentCount(uint32_t* outLastPresentCount);
 
 #if DXL_ENABLE_EXTENSIONS
-    DXLResource GetBuffer(uint32_t bufferIndex) const;
+    IDXLResource GetBuffer(uint32_t bufferIndex) const;
     DXGI_SWAP_CHAIN_DESC1 GetDesc() const;
     HWND GetHwnd() const;
     uint32_t GetMaximumFrameLatency();
@@ -814,12 +814,12 @@ public:
 
 #if DXL_ENABLE_DEVELOPER_ONLY_FEATURES
 
-class DXLDebug : public DXLBase
+class IDXLDebug : public IDXLBase
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLDebug, ID3D12Debug6);
+    DXL_INTERFACE_BOILERPLATE(IDXLDebug, ID3D12Debug6);
 
     void EnableDebugLayer();
     void DisableDebugLayer();
@@ -832,15 +832,15 @@ public:
     void SetEnableAutoName(bool enable);
 };
 
-class DXLDebugDevice : public DXLBase
+class IDXLDebugDevice : public IDXLBase
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLDebugDevice, ID3D12DebugDevice2);
+    DXL_INTERFACE_BOILERPLATE(IDXLDebugDevice, ID3D12DebugDevice2);
 
 #if DXL_ENABLE_EXTENSIONS
-    static DXLDebugDevice FromDevice(DXLDevice device);
+    static IDXLDebugDevice FromDevice(IDXLDevice device);
 #endif
 
     HRESULT SetFeatureMask(D3D12_DEBUG_FEATURE mask);
@@ -851,30 +851,30 @@ public:
     HRESULT GetDebugParameter(D3D12_DEBUG_DEVICE_PARAMETER_TYPE type, void* data, uint32_t dataSize);
 };
 
-class DXLDebugCommandQueue : public DXLBase
+class IDXLDebugCommandQueue : public IDXLBase
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLDebugCommandQueue, ID3D12DebugCommandQueue1);
+    DXL_INTERFACE_BOILERPLATE(IDXLDebugCommandQueue, ID3D12DebugCommandQueue1);
 
 #if DXL_ENABLE_EXTENSIONS
-    static DXLDebugCommandQueue FromCommandQueue(DXLCommandQueue commandQueue);
+    static IDXLDebugCommandQueue FromCommandQueue(IDXLCommandQueue commandQueue);
 #endif
 
-    void AssertResourceAccess(DXLResource resource, uint32_t subresource, D3D12_BARRIER_ACCESS access);
-    void AssertTextureLayout(DXLResource resource, uint32_t subresource, D3D12_BARRIER_LAYOUT layout);
+    void AssertResourceAccess(IDXLResource resource, uint32_t subresource, D3D12_BARRIER_ACCESS access);
+    void AssertTextureLayout(IDXLResource resource, uint32_t subresource, D3D12_BARRIER_LAYOUT layout);
 };
 
-class DXLDebugCommandList : public DXLBase
+class IDXLDebugCommandList : public IDXLBase
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLDebugCommandList, ID3D12DebugCommandList3);
+    DXL_INTERFACE_BOILERPLATE(IDXLDebugCommandList, ID3D12DebugCommandList3);
 
 #if DXL_ENABLE_EXTENSIONS
-    static DXLDebugCommandList FromCommandList(DXLCommandList commandList);
+    static IDXLDebugCommandList FromCommandList(IDXLCommandList commandList);
 #endif
 
     HRESULT SetFeatureMask(D3D12_DEBUG_FEATURE Mask);
@@ -883,19 +883,19 @@ public:
     HRESULT SetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE type, const void* data, uint32_t dataSize);
     HRESULT GetDebugParameter(D3D12_DEBUG_COMMAND_LIST_PARAMETER_TYPE type, void* data, uint32_t dataSize);
 
-    void AssertResourceAccess(DXLResource resource, uint32_t subresource, D3D12_BARRIER_ACCESS access);
-    void AssertTextureLayout(DXLResource resource, uint32_t subresource, D3D12_BARRIER_LAYOUT layout);
+    void AssertResourceAccess(IDXLResource resource, uint32_t subresource, D3D12_BARRIER_ACCESS access);
+    void AssertTextureLayout(IDXLResource resource, uint32_t subresource, D3D12_BARRIER_LAYOUT layout);
 };
 
-class DXLDebugInfoQueue : public DXLBase
+class IDXLDebugInfoQueue : public IDXLBase
 {
 
 public:
 
-    DXL_INTERFACE_BOILERPLATE(DXLDebugInfoQueue, ID3D12InfoQueue1);
+    DXL_INTERFACE_BOILERPLATE(IDXLDebugInfoQueue, ID3D12InfoQueue1);
 
 #if DXL_ENABLE_EXTENSIONS
-    static DXLDebugInfoQueue FromDevice(DXLDevice device);
+    static IDXLDebugInfoQueue FromDevice(IDXLDevice device);
 #endif
 
     HRESULT RegisterMessageCallback(D3D12MessageFunc callbackFunc, D3D12_MESSAGE_CALLBACK_FLAGS callbackFilterFlags, void* context, DWORD* outCallbackCookie);
@@ -919,7 +919,7 @@ struct CreateDeviceParams
 
 struct CreateDeviceResult
 {
-    DXLDevice Device;
+    IDXLDevice Device;
     HRESULT Result = S_OK;
     const char* FailureReason = nullptr;
 };
@@ -927,7 +927,7 @@ struct CreateDeviceResult
 CreateDeviceResult CreateDevice(CreateDeviceParams params);
 
 void Release(IUnknown*& unknown);
-void Release(DXLBase& base);
+void Release(IDXLBase& base);
 
 template<typename TInterface> IID GetIID(TInterface** ptrToInterface) { return __uuidof(**ptrToInterface); }
 template<typename TDXLInterface> IID GetIID([[maybe_unused]] TDXLInterface* ptrToInterface) { return TDXLInterface::InterfaceID(); }

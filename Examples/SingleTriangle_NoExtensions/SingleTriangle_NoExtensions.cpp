@@ -13,11 +13,11 @@ static constexpr uint32_t RenderLatency = 2;
 
 static Window window(nullptr, "SingleTriangle");
 
-static DXLDevice device;
-static DXLCommandQueue commandQueue;
-static DXLCommandAllocator commandAllocators[RenderLatency];
-static DXLCommandList commandList;
-static DXLFence frameFence;
+static IDXLDevice device;
+static IDXLCommandQueue commandQueue;
+static IDXLCommandAllocator commandAllocators[RenderLatency];
+static IDXLCommandList commandList;
+static IDXLFence frameFence;
 HANDLE frameFenceEvent = INVALID_HANDLE_VALUE;
 
 static uint64_t cpuFrame = 0;  // Total number of CPU frames completed (completed means all command buffers submitted to the GPU)
@@ -26,16 +26,16 @@ static uint64_t frameRecordingBufferIndex = 0;  // cpuFrame % RenderLatency
 
 static IDXGIFactory7* dxgiFactory = nullptr;
 static constexpr uint32_t NumSwapChainBuffers = 2;
-static DXLSwapChain swapChain;
+static IDXLSwapChain swapChain;
 static uint32_t swapChainWidth = 0;
 static uint32_t swapChainHeight = 0;
-static DXLResource swapChainBuffers[NumSwapChainBuffers];
+static IDXLResource swapChainBuffers[NumSwapChainBuffers];
 
-static DXLDescriptorHeap rtvDescriptorHeap;
+static IDXLDescriptorHeap rtvDescriptorHeap;
 static D3D12_CPU_DESCRIPTOR_HANDLE swapChainRTVs[NumSwapChainBuffers] = { };
 
-static DXLRootSignature rootSignature;
-static DXLPipelineState pso;
+static IDXLRootSignature rootSignature;
+static IDXLPipelineState pso;
 
 #define RELEASE_INTERFACE(x) do { if (x) { x->Release(); x = nullptr; } } while (0)
 
@@ -75,7 +75,7 @@ static void Initialize()
         RELEASE_INTERFACE(sdkConfig);
 
         {
-            DXLDebug d3d12debug;
+            IDXLDebug d3d12debug;
             if (SUCCEEDED(deviceFactory->GetConfigurationInterface(CLSID_D3D12Debug, IID_PPV_ARGS(d3d12debug.AddressOfNative()))))
             {
                 d3d12debug->EnableDebugLayer();
@@ -89,7 +89,7 @@ static void Initialize()
         ASSERT_HR(deviceFactory->CreateDevice(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(device.AddressOfNative())), "Failed to create D3D12 device from device factory");
 
         {
-            DXLDebugInfoQueue infoQueue;
+            IDXLDebugInfoQueue infoQueue;
             if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(infoQueue.AddressOfNative()))))
             {
                 DWORD callbackCookie = 0;
@@ -221,9 +221,9 @@ static void Shutdown()
     RELEASE_INTERFACE(frameFence);
     RELEASE_INTERFACE(commandList);
     RELEASE_INTERFACE(commandQueue);
-    for (DXLCommandAllocator& commandAllocator: commandAllocators)
+    for (IDXLCommandAllocator& commandAllocator: commandAllocators)
         RELEASE_INTERFACE(commandAllocator);
-    for (DXLResource& buffer : swapChainBuffers)
+    for (IDXLResource& buffer : swapChainBuffers)
         RELEASE_INTERFACE(buffer);
     RELEASE_INTERFACE(swapChain);
     RELEASE_INTERFACE(device);
@@ -240,7 +240,7 @@ static void Render()
     {
         // Transition the current swap chain back buffer to a render target layout
         const uint32_t backBufferIndex = swapChain->GetCurrentBackBufferIndex();
-        const DXLResource backBuffer = swapChainBuffers[backBufferIndex];
+        const IDXLResource backBuffer = swapChainBuffers[backBufferIndex];
 
         {
             const D3D12_TEXTURE_BARRIER barrier =

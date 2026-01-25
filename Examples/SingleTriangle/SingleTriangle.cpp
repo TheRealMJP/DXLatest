@@ -12,11 +12,11 @@ static constexpr uint32_t RenderLatency = 2;
 
 static Window window(nullptr, "SingleTriangle");
 
-static DXLDevice device;
-static DXLCommandQueue commandQueue;
-static DXLCommandAllocator commandAllocators[RenderLatency];
-static DXLCommandList commandList;
-static DXLFence frameFence;
+static IDXLDevice device;
+static IDXLCommandQueue commandQueue;
+static IDXLCommandAllocator commandAllocators[RenderLatency];
+static IDXLCommandList commandList;
+static IDXLFence frameFence;
 HANDLE frameFenceEvent = INVALID_HANDLE_VALUE;
 
 static uint64_t cpuFrame = 0;  // Total number of CPU frames completed (completed means all command buffers submitted to the GPU)
@@ -24,16 +24,16 @@ static uint64_t gpuFrame = 0;  // Total number of GPU frames completed (complete
 static uint64_t frameRecordingBufferIndex = 0;  // cpuFrame % RenderLatency
 
 static constexpr uint32_t NumSwapChainBuffers = 2;
-static DXLSwapChain swapChain;
+static IDXLSwapChain swapChain;
 static uint32_t swapChainWidth = 0;
 static uint32_t swapChainHeight = 0;
-static DXLResource swapChainBuffers[NumSwapChainBuffers];
+static IDXLResource swapChainBuffers[NumSwapChainBuffers];
 
-static DXLDescriptorHeap rtvDescriptorHeap;
+static IDXLDescriptorHeap rtvDescriptorHeap;
 static D3D12_CPU_DESCRIPTOR_HANDLE swapChainRTVs[NumSwapChainBuffers] = { };
 
-static DXLRootSignature rootSignature;
-static DXLPipelineState pso;
+static IDXLRootSignature rootSignature;
+static IDXLPipelineState pso;
 
 static void Initialize()
 {
@@ -82,7 +82,7 @@ static void Initialize()
             .SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
             .Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING,
         };
-        swapChain = DXLSwapChain::Create(swapChainDesc, commandQueue);
+        swapChain = IDXLSwapChain::Create(swapChainDesc, commandQueue);
 
         for (uint32_t i = 0; i < NumSwapChainBuffers; ++i)
             swapChainBuffers[i] = swapChain->GetBuffer(i);
@@ -122,9 +122,9 @@ static void Shutdown()
     DXL::Release(frameFence);
     DXL::Release(commandList);
     DXL::Release(commandQueue);
-    for (DXLCommandAllocator& commandAllocator: commandAllocators)
+    for (IDXLCommandAllocator& commandAllocator: commandAllocators)
         DXL::Release(commandAllocator);
-    for (DXLResource& buffer : swapChainBuffers)
+    for (IDXLResource& buffer : swapChainBuffers)
         DXL::Release(buffer);
     DXL::Release(swapChain);
     DXL::Release(device);
@@ -141,7 +141,7 @@ static void Render()
     {
         // Transition the current swap chain back buffer to a render target layout
         const uint32_t backBufferIndex = swapChain->GetCurrentBackBufferIndex();
-        const DXLResource backBuffer = swapChainBuffers[backBufferIndex];
+        const IDXLResource backBuffer = swapChainBuffers[backBufferIndex];
         const D3D12_TEXTURE_BARRIER backBufferRTBarrier =
         {
             .SyncBefore = D3D12_BARRIER_SYNC_NONE,
