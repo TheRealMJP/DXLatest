@@ -6,6 +6,7 @@
 #include "SingleTrianglePS.h"
 
 using namespace dxl;
+using namespace DXLExampleHelpers;
 
 static constexpr uint32_t RenderLatency = 2;
 

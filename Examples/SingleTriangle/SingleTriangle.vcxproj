@@ -85,6 +85,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\dxlatest.cpp" />
+    <ClCompile Include="..\Shared\ExampleHelpers.cpp" />
     <ClCompile Include="..\Shared\Window.cpp" />
     <ClCompile Include="SingleTriangle.cpp" />
   </ItemGroup>

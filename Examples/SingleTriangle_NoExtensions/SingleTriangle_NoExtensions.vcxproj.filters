@@ -21,6 +21,9 @@
     <ClCompile Include="..\Shared\Window.cpp">
       <Filter>Shared</Filter>
     </ClCompile>
+    <ClCompile Include="..\Shared\ExampleHelpers.cpp">
+      <Filter>Shared</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\dxlatest.h">
