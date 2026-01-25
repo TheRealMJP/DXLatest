@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="AgilitySDK">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="DXLatest">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Shared">
+      <UniqueIdentifier>{ec502fa2-9236-4b94-ba0c-2d0efe3ae545}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SingleTriangle_NoExtensions.cpp" />
+    <ClCompile Include="..\..\dxlatest.cpp">
+      <Filter>DXLatest</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\Window.cpp">
+      <Filter>Shared</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\dxlatest.h">
+      <Filter>DXLatest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12sdklayers.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12shader.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\D3D12TokenizedProgramFormat.hpp">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12video.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dcommon.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dshadercacheregistration.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\dxgiformat.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_barriers.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_check_feature_support.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_core.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_default.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_pipeline_state_stream.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_property_format_table.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_render_pass.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_resource_helpers.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_root_signature.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3dx12\d3dx12_state_object.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12compatibility.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AgilitySDK\include\d3d12compiler.h">
+      <Filter>AgilitySDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Window.h">
+      <Filter>Shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\ExampleHelpers.h">
+      <Filter>Shared</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="SingleTriangleVS.hlsl" />
+    <FxCompile Include="SingleTrianglePS.hlsl" />
+  </ItemGroup>
+</Project>
