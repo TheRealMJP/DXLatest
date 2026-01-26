@@ -2,10 +2,8 @@
 #include "../Shared/Window.h"
 #include "../Shared/ExampleHelpers.h"
 
-#include "SingleTriangleVS.h"
-#include "SingleTrianglePS.h"
-
 using namespace DXL;
+using namespace DXL::Helpers;
 using namespace DXLExampleHelpers;
 
 static constexpr uint32_t RenderLatency = 2;
@@ -41,7 +39,7 @@ static void Initialize()
         CreateDeviceResult result = DXL::CreateDevice({ .EnableDebugLayer = true });
         if (!result.Device)
         {
-            window.CreateMessageBox(MakeString("Failed to create D3D12 device: %s (hr=0x%x)", result.FailureReason, result.Result).c_str(), "SingleTriangle");
+            window.CreateMessageBox(MakeString("Failed to create D3D12 device: %s (hr=0x%x)", result.FailureReason.c_str(), result.Result).c_str(), "SingleTriangle");
             return;
         }
         device = result.Device;
@@ -99,11 +97,14 @@ static void Initialize()
     {
         rootSignature = device->CreateRootSignature({ });
 
+        CompiledShader vertexShader = CompileShaderFromFile({ .Type = ShaderType::Vertex, .FilePath = "SingleTriangle.hlsl", .EntryPoint = "VSMain" });
+        CompiledShader pixelShader = CompileShaderFromFile({ .Type = ShaderType::Pixel, .FilePath = "SingleTriangle.hlsl", .EntryPoint = "PSMain" });
+
         pso = device->CreateGraphicsPSO(
         {
             .RootSignature = rootSignature,
-            .VertexShaderByteCode = { SingleTriangleVS, sizeof(SingleTriangleVS) },
-            .PixelShaderByteCode = { SingleTrianglePS, sizeof(SingleTrianglePS) },
+            .VertexShaderByteCode = vertexShader,
+            .PixelShaderByteCode = pixelShader,
             .RenderTargetFormats = { .RTFormats = { DXGI_FORMAT_R8G8B8A8_UNORM },  .NumRenderTargets = 1 },
         });
         pso->SetName("Main PSO");

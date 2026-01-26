@@ -12,6 +12,10 @@
 
 #define DXL_ARRAY_SIZE(x) ((sizeof(x) / sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 
+#if DXL_ENABLE_EXTENSIONS
+#include "dxc/inc/dxcapi.h"
+#endif
+
 namespace DXL
 {
 
@@ -25,7 +29,7 @@ static void PrintMessageBuffer(const char* msg)
 
 static void PrintMessage(const char* msg, ...)
 {
-    char messageBuffer[1024] = { };
+    char messageBuffer[1024 * 16] = { };
 
     va_list args;
     va_start(args, msg);
@@ -40,7 +44,7 @@ static void PrintMessage(const char* msg, ...)
 
 static void ShowMessageBox(const char* msg, ...)
 {
-    char messageBuffer[1024] = { };
+    char messageBuffer[1024 * 16] = { };
 
     va_list args;
     va_start(args, msg);
@@ -137,6 +141,18 @@ struct WideStringConverter
     }
 };
 
+static bool FileExists(const char* filePath)
+{
+    if(filePath == NULL)
+        return false;
+
+    DWORD fileAttr = GetFileAttributesA(filePath);
+    if (fileAttr == INVALID_FILE_ATTRIBUTES)
+        return false;
+
+    return true;
+}
+
 static std::string GetDirectoryFromFilePath(const char* filePath_)
 {
     std::string filePath(filePath_);
@@ -152,6 +168,15 @@ static std::string ResolveFilePath(const char* filePath)
     char resolvedPath[MAX_PATH] = { };
     GetFullPathNameA(filePath, DXL_ARRAY_SIZE(resolvedPath), resolvedPath, nullptr);
     return std::string(resolvedPath);
+}
+
+static std::string MakeString(const char* format, ...)
+{
+    char buffer[1024 * 16] = { 0 };
+    va_list args;
+    va_start(args, format);
+    vsprintf_s(buffer, DXL_ARRAY_SIZE(buffer), format, args);
+    return std::string(buffer);
 }
 
 static void DefaultErrorCallback(const char* function, HRESULT hr, const char* message)
@@ -187,7 +212,7 @@ void SetErrorCallback(ErrorCallbackFunction callback)
     errorCallback = callback;
 }
 
-#define DXL_ERROR(function, hr, msg) do { if (errorCallback) errorCallback(function, hr, msg); } while(0)
+#define DXL_ERROR(hr, msg) do { if (errorCallback) errorCallback(__FUNCTION__, hr, msg); } while(0)
 #define DXL_HANDLE_HRESULT(hr) do { if (FAILED(hr) && errorCallback) errorCallback(__FUNCTION__, hr, ""); } while(0)
 #define DXL_HANDLE_HRESULT_MSG(hr, msg) do { if (FAILED(hr) && errorCallback) errorCallback(__FUNCTION__, hr, msg); } while(0)
 
@@ -2082,7 +2107,7 @@ CreateDeviceResult CreateDevice(CreateDeviceParams params)
     ComPtr<ID3D12DeviceFactory> deviceFactory;
     hr = sdkConfig->CreateDeviceFactory(D3D12_SDK_VERSION, params.AgilitySDKPath.c_str(), IID_PPV_ARGS(&deviceFactory));
     if (FAILED(hr))
-        return { IDXLDevice(), hr, "Failed to create a D3D12 device factory. Did you pass the wrong AgilitySDKPath?" };
+        return { IDXLDevice(), hr, MakeString("Failed to create a D3D12 device factory using Agility SDK Path '%s'. Did you pass the wrong AgilitySDKPath?", params.AgilitySDKPath.c_str()) };
 
 #if DXL_ENABLE_DEVELOPER_ONLY_FEATURES
     if (params.EnableDebugLayer)
@@ -2123,7 +2148,7 @@ CreateDeviceResult CreateDevice(CreateDeviceParams params)
 #endif
 
     device->AddRef();
-    return { device.Get(), S_OK, nullptr };
+    return { device.Get(), S_OK };
 }
 
 void Release(IUnknown*& unknown)
@@ -2143,6 +2168,197 @@ void Release(IDXLBase& base)
         base = IDXLBase();
     }
 }
+
+namespace Helpers
+{
+
+std::string GetDefaultDXCPath()
+{
+    const char* relativePath = "..\\..\\..\\..\\..\\dxc\\bin\\x64\\dxcompiler.dll";
+
+    char exePath[MAX_PATH] = { };
+    GetModuleFileNameA(nullptr, exePath, DXL_ARRAY_SIZE(exePath));
+    std::string dllPath = GetDirectoryFromFilePath(exePath) + relativePath;
+    return ResolveFilePath(dllPath.c_str());
+}
+
+static const char* ShaderTypeStrings[] =
+{
+    "vertex",
+    "hull",
+    "domain",
+    "geometry",
+    "amplification",
+    "mesh",
+    "pixel",
+    "compute",
+    "lib"
+};
+static_assert(DXL_ARRAY_SIZE(ShaderTypeStrings) == uint32_t(ShaderType::NumTypes));
+
+static const wchar_t* ShaderProfileStrings[] =
+{
+    L"vs_6_8",
+    L"hs_6_8",
+    L"ds_6_8",
+    L"gs_6_8",
+    L"as_6_8",
+    L"ms_6_8",
+    L"ps_6_8",
+    L"cs_6_8",
+    L"lib_6_8"
+};
+static_assert(DXL_ARRAY_SIZE(ShaderProfileStrings) == uint32_t(ShaderType::NumTypes));
+
+CompiledShader CompileShaderFromFile(CompileShaderParams params)
+{
+    if (uint32_t(params.Type) >= uint32_t(ShaderType::NumTypes))
+    {
+        DXL_ERROR(E_FAIL, "Invalid ShaderType passed to CompileShaderFromFile");
+        return {};
+    }
+
+    if (FileExists(params.FilePath) == false)
+    {
+        DXL_ERROR(E_FAIL, MakeString("Shader file path '%s' does not exist", params.FilePath).c_str());
+        return {};
+    }
+
+    static HMODULE dxcModule = nullptr;
+    if (dxcModule == nullptr)
+    {
+        if (FileExists(params.PathToDXC.c_str()) == false)
+        {
+            DXL_ERROR(E_FAIL, MakeString("dxcompiler.dll file path '%s' does not exist", params.PathToDXC.c_str()).c_str());
+            return {};
+        }
+
+        dxcModule = ::LoadLibrary(params.PathToDXC.c_str());
+        if (dxcModule == nullptr)
+        {
+            DXL_ERROR(E_FAIL, MakeString("Failed to load dxcompiler.dll from path '%s'", params.PathToDXC.c_str()).c_str());
+            return {};
+        }
+    }
+
+    static DxcCreateInstanceProc dxcCreateInstance = (DxcCreateInstanceProc)::GetProcAddress(dxcModule, "DxcCreateInstance");
+    DXL_ASSERT(dxcCreateInstance != nullptr, "Failed to find DxcCreateInstance from dxil.dll");
+
+    ComPtr<IDxcUtils> utils;
+    DXL_HANDLE_HRESULT_MSG(dxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils)), "Failed to create IDxcUtils instance");
+
+    ComPtr<IDxcCompiler3> compiler;
+    DXL_HANDLE_HRESULT_MSG(dxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler)), "Failed to create IDxcUtils instance");
+
+    std::vector<DxcDefine> dxcDefines;
+    std::vector<WideStringConverter> defineStrings;
+    if (params.Defines.Count > 0)
+    {
+        dxcDefines.reserve(params.Defines.Count);
+        defineStrings.reserve(params.Defines.Count);
+        for (const PreprocessorDefine& define : params.Defines)
+        {
+            const wchar_t* defineName = defineStrings.emplace_back(define.Name).wideString;
+            const wchar_t* defineValue = defineStrings.emplace_back(MakeString("%i", define.Value).c_str()).wideString;
+            dxcDefines.emplace_back(defineName, defineValue);
+        }
+    }
+
+    std::vector<const wchar_t*> compileArgs;
+    compileArgs.emplace_back(L"-HV 2021");
+    compileArgs.emplace_back(L"-enable-16bit-types");
+    if (params.WarningsAsErrors)
+        compileArgs.emplace_back(L"-WX");
+    compileArgs.emplace_back(params.EnableOptimizations ? L"-O3" : L"-O0");
+    if (params.EnableDebugInfo)
+    {
+        compileArgs.emplace_back(L"-Zi");
+        compileArgs.emplace_back(L"-Qembed_debug");
+    }
+    if (params.RowMajorByDefault)
+        compileArgs.emplace_back(L"-Zpr");
+
+    std::vector<WideStringConverter> includeDirs;
+    if (params.IncludeDirectories.Count > 0)
+    {
+        includeDirs.reserve(params.IncludeDirectories.Count);
+        for (const char* includeDir : params.IncludeDirectories)
+        {
+            const wchar_t* includeDirW = includeDirs.emplace_back(includeDir).wideString;
+            compileArgs.emplace_back(L"-I");
+            compileArgs.emplace_back(includeDirW);
+        }
+    }
+
+    const wchar_t* profileString = ShaderProfileStrings[uint32_t(params.Type)];
+    const char* entryPoint = params.Type != ShaderType::Library ? params.EntryPoint : "";
+
+    ComPtr<IDxcCompilerArgs> dxcCompilerArgs;
+    DXL_HANDLE_HRESULT_MSG(utils->BuildArguments(WideStringConverter(params.FilePath).wideString, WideStringConverter(entryPoint).wideString, profileString, compileArgs.data(), uint32_t(compileArgs.size()), dxcDefines.data(), uint32_t(dxcDefines.size()), &dxcCompilerArgs), "Failed to build DXC compile args");
+
+    ComPtr<IDxcIncludeHandler> includeHandler;
+    DXL_HANDLE_HRESULT_MSG(utils->CreateDefaultIncludeHandler(&includeHandler), "Failed to create default include handler");
+
+    while (true)
+    {
+        ComPtr<IDxcBlobEncoding> sourceCode;
+        DXL_HANDLE_HRESULT_MSG(utils->LoadFile(WideStringConverter(params.FilePath).wideString, nullptr, &sourceCode), "Failed to create IDxcBlobEncoding from the file path");
+
+        DxcBuffer sourceBuffer;
+        sourceBuffer.Ptr = sourceCode->GetBufferPointer();
+        sourceBuffer.Size = sourceCode->GetBufferSize();
+        sourceBuffer.Encoding = 0;
+
+        ComPtr<IDxcResult> operationResult;
+        DXL_HANDLE_HRESULT_MSG(compiler->Compile(&sourceBuffer, dxcCompilerArgs->GetArguments(), dxcCompilerArgs->GetCount(), includeHandler.Get(), IID_PPV_ARGS(&operationResult)), "IDxcCompiler3::Compile failed unexpectedly");
+
+        HRESULT hr = S_OK;
+        operationResult->GetStatus(&hr);
+        if (SUCCEEDED(hr))
+        {
+            ComPtr<IDxcBlob> compiledShader;
+            DXL_HANDLE_HRESULT_MSG(operationResult->GetResult(&compiledShader), "Failed to get compiled shader data from dxc result");
+
+            const size_t byteCodeSize = compiledShader->GetBufferSize();
+
+            CompiledShader result;
+            result.Bytecode.resize(byteCodeSize);
+            memcpy(result.Bytecode.data(), compiledShader->GetBufferPointer(), byteCodeSize);
+            result.Type = params.Type;
+
+            return result;
+        }
+        else
+        {
+            ComPtr<IDxcBlobEncoding> errorMessages;
+            operationResult->GetErrorBuffer(&errorMessages);
+
+            const char* errMsgStr = reinterpret_cast<const char*>(errorMessages->GetBufferPointer());
+            std::string fullMessage = MakeString("Error compiling shader file \"%s\" - ", params.FilePath);
+            fullMessage += errMsgStr;
+
+            if (params.LoopOnError)
+            {
+                // Pop up a message box allowing user to retry compilation
+                int32_t retVal = MessageBox(nullptr, fullMessage.c_str(), "Shader Compilation Error", MB_RETRYCANCEL);
+                if (retVal != IDRETRY)
+                {
+                    DXL_ERROR(E_FAIL, fullMessage.c_str());
+                    break;
+                }
+            }
+            else
+            {
+                DXL_ERROR(E_FAIL, fullMessage.c_str());
+                break;
+            }
+        }
+    }
+
+    return { };
+}
+
+} // namespace Helpers
 
 #endif // DXL_ENABLE_EXTENSIONS
 

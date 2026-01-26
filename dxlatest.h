@@ -98,6 +98,12 @@ template<typename T> struct Span
 
     Span() = default;
     Span(uint32_t count, T* items) : Count(count), Items(items) { }
+
+    T* begin() { return Items; }
+    const T* begin() const { return Items; }
+
+    T* end() { return Items ? Items + Count : nullptr; }
+    const T* end() const { return Items ? Items + Count : nullptr; }
 };
 
 #endif // DXL_ENABLE_EXTENSIONS
@@ -928,7 +934,7 @@ struct CreateDeviceResult
 {
     IDXLDevice Device;
     HRESULT Result = S_OK;
-    const char* FailureReason = nullptr;
+    std::string FailureReason;
 };
 
 CreateDeviceResult CreateDevice(CreateDeviceParams params);
@@ -947,7 +953,62 @@ template<typename TDXLInterface> void** GetPPVArg(TDXLInterface* ptrToInterface)
 namespace Helpers
 {
 
+std::string GetDefaultDXCPath();
 
+enum class ShaderType
+{
+    Vertex = 0,
+    Hull,
+    Domain,
+    Geometry,
+    Amplification,
+    Mesh,
+    Pixel,
+    Compute,
+    Library,
+
+    NumTypes,
+    Invalid = NumTypes
+};
+
+struct PreprocessorDefine
+{
+    const char* Name = "";
+    const int32_t Value = 0;
+};
+
+struct CompiledShader
+{
+    std::vector<uint8_t> Bytecode;
+    ShaderType Type = ShaderType::Invalid;
+
+    D3D12_SHADER_BYTECODE ToD3D12Bytecode() const
+    {
+        return { .pShaderBytecode = Bytecode.data(), .BytecodeLength = Bytecode.size() };
+    }
+
+    operator D3D12_SHADER_BYTECODE() const
+    {
+        return ToD3D12Bytecode();
+    }
+};
+
+struct CompileShaderParams
+{
+    ShaderType Type = ShaderType::Invalid;
+    const char* FilePath = "";
+    const char* EntryPoint = "";
+    Span<const PreprocessorDefine> Defines = { };
+    Span<const char*> IncludeDirectories = { };
+    bool LoopOnError = true;
+    bool WarningsAsErrors = true;
+    bool EnableOptimizations = true;
+    bool EnableDebugInfo = false;
+    bool RowMajorByDefault = true;
+    std::string PathToDXC = GetDefaultDXCPath();
+};
+
+CompiledShader CompileShaderFromFile(CompileShaderParams params);
 
 } // namespace Helpers
 

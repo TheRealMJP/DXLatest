@@ -99,8 +99,4 @@
       <Filter>Shared</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="SingleTriangleVS.hlsl" />
-    <FxCompile Include="SingleTrianglePS.hlsl" />
-  </ItemGroup>
 </Project>
